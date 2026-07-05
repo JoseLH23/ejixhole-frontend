@@ -3,39 +3,72 @@
 @tailwind utilities;
 
 /*
-  Paleta EjiXhole: inspirada en los ríos turquesa de la Huasteca
-  Potosina (Tamul, Puente de Dios) y la piedra caliza de la región.
-  Un solo tema (claro) ejecutado con precisión, en vez de claro+oscuro
-  a medias — ver docs/DISENO-VISUAL.md para el token system completo.
+  Paleta EjiXhole — Entrega 5 (Premium UI/Branding).
+
+  Identidad: parque ecoturístico en la Huasteca Potosina — selva,
+  cascadas turquesa, madera. Tres colores de marca con propósito
+  distinto, no solo decorativo:
+
+    --primary   verde selva     → acción principal, marca, navegación activa
+    --secondary turquesa agua   → información/datos, acentos de gráficas
+    --accent    beige madera    → fondos sutiles de hover, calidez
+
+  Un solo tema (claro), ejecutado con precisión — ver
+  docs/entrega-5-premium-ui.md para el detalle completo de decisiones.
 */
 @layer base {
   :root {
-    --background: 40 30% 96%;
-    --foreground: 170 15% 12%;
+    --background: 40 25% 97%;
+    --foreground: 160 22% 12%;
 
-    --card: 40 35% 99%;
-    --card-foreground: 170 15% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 160 22% 12%;
 
-    --primary: 185 75% 27%;
-    --primary-foreground: 40 30% 97%;
+    --surface: 40 20% 99%;
 
-    --secondary: 28 45% 55%;
+    /* Verde selva — color de marca principal */
+    --primary: 152 45% 30%;
+    --primary-foreground: 40 30% 98%;
+
+    /* Turquesa agua — ríos de la Huasteca */
+    --secondary: 188 65% 34%;
     --secondary-foreground: 40 30% 98%;
 
-    --muted: 40 20% 90%;
-    --muted-foreground: 170 10% 40%;
+    /* Beige madera — fondo sutil de hover/acento */
+    --accent: 32 35% 90%;
+    --accent-foreground: 30 25% 20%;
 
-    --accent: 28 45% 92%;
-    --accent-foreground: 170 15% 15%;
+    /* Madera saturada — acentos puntuales (no fondos) */
+    --wood: 28 45% 42%;
+    --wood-foreground: 40 30% 98%;
 
-    --destructive: 8 55% 46%;
-    --destructive-foreground: 40 30% 97%;
+    --success: 142 50% 36%;
+    --success-foreground: 40 30% 98%;
 
-    --border: 40 20% 85%;
-    --input: 40 20% 85%;
-    --ring: 185 75% 27%;
+    --warning: 38 85% 50%;
+    --warning-foreground: 30 35% 15%;
 
-    --radius: 0.6rem;
+    --destructive: 4 62% 46%;
+    --destructive-foreground: 40 30% 98%;
+
+    --muted: 40 18% 92%;
+    --muted-foreground: 160 8% 42%;
+
+    --border: 40 18% 87%;
+    --input: 40 18% 87%;
+    --ring: 152 45% 30%;
+
+    /* Estados — un solo lugar para los 8 módulos (ver EstadoBadge) */
+    --estado-pendiente: 38 80% 52%;
+    --estado-confirmada: 188 65% 38%;
+    --estado-completada: 152 45% 34%;
+    --estado-cancelada: 4 62% 48%;
+    --estado-activo: 152 45% 34%;
+    --estado-inactivo: 160 8% 55%;
+    --estado-abierta: 188 65% 38%;
+    --estado-cerrada: 160 8% 45%;
+
+    --radius: 0.75rem;
   }
 }
 
@@ -49,15 +82,43 @@
   h1, h2, h3, h4 {
     @apply font-display;
   }
+
+  /* Scrollbar discreto, coherente con la paleta — detalle premium menor */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.4);
+  }
 }
 
 /*
   Elemento de firma: curvas tipo río, usadas SOLO en el fondo del
-  Login (ver LoginPage.tsx). Deliberadamente el único lugar del
-  sistema con esta decoración — el resto de la app queda disciplinado.
+  Login. Deliberadamente el único lugar del sistema con esta
+  decoración — el resto de la app queda disciplinado. Colores
+  actualizados a la nueva paleta (turquesa + madera).
 */
 .river-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Cpath d='M0 80C60 40 120 120 180 80C240 40 300 120 360 80C420 40 460 100 400 140' stroke='%230D7480' stroke-width='2' fill='none' opacity='0.10'/%3E%3Cpath d='M0 180C60 140 120 220 180 180C240 140 300 220 360 180C420 140 460 200 400 240' stroke='%230D7480' stroke-width='2' fill='none' opacity='0.08'/%3E%3Cpath d='M0 280C60 240 120 320 180 280C240 240 300 320 360 280C420 240 460 300 400 340' stroke='%23C08054' stroke-width='2' fill='none' opacity='0.10'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Cpath d='M0 80C60 40 120 120 180 80C240 40 300 120 360 80C420 40 460 100 400 140' stroke='%23127A8A' stroke-width='2' fill='none' opacity='0.10'/%3E%3Cpath d='M0 180C60 140 120 220 180 180C240 140 300 220 360 180C420 140 460 200 400 240' stroke='%23127A8A' stroke-width='2' fill='none' opacity='0.08'/%3E%3Cpath d='M0 280C60 240 120 320 180 280C240 240 300 320 360 280C420 240 460 300 400 340' stroke='%23A9743F' stroke-width='2' fill='none' opacity='0.10'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 400px 400px;
+}
+
+/* Shimmer premium para skeletons — reemplaza el animate-pulse plano */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted) / 0.5) 37%,
+    hsl(var(--muted)) 63%
+  );
+  background-size: 200% 100%;
 }

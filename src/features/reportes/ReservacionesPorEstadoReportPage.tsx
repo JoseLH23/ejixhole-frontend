@@ -6,18 +6,12 @@ import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useServicios } from "@/features/servicios/useServicios";
 import { ORIGENES_RESERVACION } from "@/types/reservacion";
+import { CHART_COLOR_POR_ESTADO, CHART_COLORS } from "@/lib/chartColors";
 import { PeriodoFilter, type PeriodoFiltroValue } from "./PeriodoFilter";
 import { ResumenStats } from "./ResumenStats";
 import { useReporteReservacionesPorEstado } from "./useReportes";
 
 const FILTRO_TODOS = "todos";
-
-const COLOR_ESTADO: Record<string, string> = {
-  pendiente: "#D4A24C",
-  confirmada: "#3B6FA0",
-  completada: "#5B8C5A",
-  cancelada: "#B5533C",
-};
 
 export function ReservacionesPorEstadoReportPage() {
   const [filtroFecha, setFiltroFecha] = React.useState<PeriodoFiltroValue>({ periodo: "mes" });
@@ -101,7 +95,7 @@ export function ReservacionesPorEstadoReportPage() {
                   <Tooltip />
                   <Bar dataKey="cantidad" radius={[4, 4, 0, 0]}>
                     {datosGrafica.map((d) => (
-                      <Cell key={d.estado} fill={COLOR_ESTADO[d.estado] ?? "#0D7480"} />
+                      <Cell key={d.estado} fill={CHART_COLOR_POR_ESTADO[d.estado] ?? CHART_COLORS.primary} />
                     ))}
                   </Bar>
                 </BarChart>

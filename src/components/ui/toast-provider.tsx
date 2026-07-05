@@ -19,7 +19,7 @@ interface ToastContextValue {
 const ToastContext = React.createContext<ToastContextValue | undefined>(undefined);
 
 const VARIANT_CONFIG: Record<ToastVariant, { Icon: typeof CheckCircle2; className: string }> = {
-  success: { Icon: CheckCircle2, className: "border-emerald-600/30 bg-emerald-50 text-emerald-900" },
+  success: { Icon: CheckCircle2, className: "border-success/30 bg-success/10 text-success" },
   error: { Icon: XCircle, className: "border-destructive/30 bg-destructive/10 text-destructive" },
   info: { Icon: Info, className: "border-border bg-card text-card-foreground" },
 };

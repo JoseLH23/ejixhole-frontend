@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Waves, X } from "lucide-react";
+import { Waves, X, Leaf } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
 import { NAV_ITEMS } from "@/router/navigation";
@@ -23,7 +23,7 @@ export function Sidebar({ abiertoEnMobile, onCerrar }: SidebarProps) {
       {/* Overlay oscuro detrás del sidebar en mobile, cierra al tocar fuera */}
       {abiertoEnMobile && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-[2px] transition-opacity md:hidden"
           onClick={onCerrar}
           aria-hidden="true"
         />
@@ -31,20 +31,28 @@ export function Sidebar({ abiertoEnMobile, onCerrar }: SidebarProps) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex h-screen w-60 flex-col border-r border-border bg-card transition-transform duration-200 md:static md:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex h-screen w-64 flex-col border-r border-border bg-card transition-transform duration-200 ease-out md:static md:translate-x-0",
           abiertoEnMobile ? "translate-x-0" : "-translate-x-full"
         )}
       >
+        {/* Logo — insignia con degradado verde selva → turquesa agua,
+            la firma visual de marca en el punto más prominente de la app. */}
         <div className="flex h-16 items-center justify-between gap-2 border-b border-border px-5">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Waves className="h-4 w-4" />
+          <div className="flex items-center gap-2.5">
+            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary text-primary-foreground shadow-premium">
+              <Waves className="h-5 w-5" />
+              <Leaf className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full bg-wood p-0.5 text-wood-foreground shadow-sm" />
             </div>
-            <span className="font-display text-lg font-semibold">EjiXhole</span>
+            <div className="leading-tight">
+              <p className="font-display text-lg font-semibold">EjiXhole</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Experience OS
+              </p>
+            </div>
           </div>
           <button
             onClick={onCerrar}
-            className="rounded-md p-1 text-muted-foreground hover:bg-accent md:hidden"
+            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent md:hidden"
             aria-label="Cerrar menú"
           >
             <X className="h-5 w-5" />
@@ -62,21 +70,26 @@ export function Sidebar({ abiertoEnMobile, onCerrar }: SidebarProps) {
                 onClick={onCerrar}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    "group relative flex items-center gap-3 overflow-hidden rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground/80 hover:bg-accent hover:text-accent-foreground"
+                      ? "bg-primary text-primary-foreground shadow-premium"
+                      : "text-foreground/75 hover:translate-x-0.5 hover:bg-accent hover:text-accent-foreground"
                   )
                 }
               >
-                <Icon className="h-4 w-4 shrink-0" />
+                <Icon
+                  className={cn(
+                    "h-4 w-4 shrink-0 transition-transform duration-150 group-hover:scale-110"
+                  )}
+                />
                 {item.label}
               </NavLink>
             );
           })}
         </nav>
 
-        <div className="border-t border-border p-3 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2 border-t border-border p-4 text-xs text-muted-foreground">
+          <Leaf className="h-3.5 w-3.5 text-primary/70" />
           EjiXhole Experience OS
         </div>
       </aside>

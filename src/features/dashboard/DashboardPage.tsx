@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { useDashboardResumen } from "./useDashboard";
 import { KpiCard } from "./KpiCard";
 import { DashboardSkeleton } from "./DashboardSkeleton";
+import { ActividadReciente } from "./ActividadReciente";
 
 function formatearFecha(fechaIso: string): string {
   try {
@@ -21,14 +22,14 @@ function formatearFecha(fechaIso: string): string {
 }
 
 export function DashboardPage() {
-  const { usuario } = useAuth();
+  const { usuario, tieneRol } = useAuth();
   const { data, isLoading, isError, error, refetch, isFetching } = useDashboardResumen();
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-3xl font-semibold">
-          Hola{usuario ? `, ${usuario.email}` : ""}
+          Hola{usuario ? `, ${usuario.email.split("@")[0]}` : ""} 🌿
         </h1>
         {data && (
           <p className="text-sm text-muted-foreground">Resumen al {formatearFecha(data.fecha)}</p>
@@ -55,11 +56,17 @@ export function DashboardPage() {
       )}
 
       {!isLoading && !isError && data && data.tarjetas.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data.tarjetas.map((tarjeta) => (
-            <KpiCard key={tarjeta.titulo} tarjeta={tarjeta} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {data.tarjetas.map((tarjeta, i) => (
+              <KpiCard key={tarjeta.titulo} tarjeta={tarjeta} delayMs={i * 40} />
+            ))}
+          </div>
+
+          {/* Solo admin: Reportes (de donde sale esta sección) es
+              admin-only en el backend — ver ActividadReciente.tsx. */}
+          {tieneRol(["admin"]) && <ActividadReciente />}
+        </>
       )}
     </div>
   );

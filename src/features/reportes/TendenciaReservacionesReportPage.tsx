@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ESTADOS_RESERVACION } from "@/types/reservacion";
+import { CHART_COLORS } from "@/lib/chartColors";
 import { PeriodoFilter, type PeriodoFiltroValue } from "./PeriodoFilter";
 import { ResumenStats } from "./ResumenStats";
 import { SerieLineChart } from "./SerieLineChart";
@@ -77,7 +78,7 @@ export function TendenciaReservacionesReportPage() {
             <SerieLineChart
               data={data.serie}
               xKey="periodo"
-              lines={[{ dataKey: "num_reservaciones", name: "Reservaciones", color: "#0D7480" }]}
+              lines={[{ dataKey: "num_reservaciones", name: "Reservaciones", color: CHART_COLORS.primary }]}
             />
           )}
         </>

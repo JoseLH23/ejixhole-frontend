@@ -44,11 +44,17 @@ export function ReportesHubPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {REPORTES.map((r) => (
+        {REPORTES.map((r, i) => (
           <Link key={r.path} to={r.path}>
-            <Card className="h-full transition-colors hover:border-primary">
+            <Card
+              interactive
+              className="h-full animate-fade-in-up"
+              style={{ animationDelay: `${i * 30}ms` }}
+            >
               <CardHeader>
-                <r.icon className="mb-2 h-6 w-6 text-primary" />
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                  <r.icon className="h-5 w-5 text-primary" />
+                </div>
                 <CardTitle className="text-base">{r.titulo}</CardTitle>
                 <CardDescription>{r.descripcion}</CardDescription>
               </CardHeader>

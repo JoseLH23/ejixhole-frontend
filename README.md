@@ -5,8 +5,8 @@ completa aprobada), `docs/entrega-1.md` (infraestructura), `docs/entrega-2.md`
 (Dashboard real), `docs/entrega-3a.md` (infraestructura CRUD + Clientes),
 `docs/entrega-3b.md` (Servicios), `docs/entrega-3c.md` (Reservaciones),
 `docs/entrega-3d.md` (Pagos), `docs/entrega-3e.md` (Caja),
-`docs/entrega-3f.md` (Reportes) y `docs/entrega-4-pulido.md` (pulido
-profesional: manejo de errores, responsive, UX).
+`docs/entrega-3f.md` (Reportes), `docs/entrega-4-pulido.md` (pulido UX)
+y `docs/entrega-5-premium-ui.md` (branding e identidad visual premium).
 
 ## Requisitos
 
@@ -40,6 +40,22 @@ npm run build
 Si `tsc -b` marca algún error real (no relacionado a paquetes
 faltantes, que no debería pasar tras `npm install`), avísame el
 mensaje exacto — mismo protocolo que usamos con el backend.
+
+## Identidad visual (Entrega 5)
+
+Sistema de diseño completo en variables CSS (`src/index.css` +
+`tailwind.config.js`) — ningún color está hardcodeado en componentes
+(única excepción documentada: `src/lib/chartColors.ts`, porque
+Recharts pinta con SVG y necesita strings literales, no `hsl(var(--x))`).
+
+- **Primary** — verde selva (marca, navegación activa, botones principales)
+- **Secondary** — turquesa agua (datos, acentos de gráficas)
+- **Accent** — beige madera (fondos sutiles de hover)
+- **Wood** — madera saturada (acentos puntuales)
+- **Success / Warning / Destructive** — semánticos, usados en botones, badges y toasts
+- **Surface** — superficie elevada, distinta del fondo general
+
+Ver `docs/entrega-5-premium-ui.md` para el detalle completo.
 
 ## Estructura
 

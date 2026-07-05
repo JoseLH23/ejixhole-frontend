@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { formatearMoneda } from "@/lib/format";
+import { CHART_COLORS } from "@/lib/chartColors";
 import { useServicios } from "@/features/servicios/useServicios";
 import { PeriodoFilter, type PeriodoFiltroValue } from "./PeriodoFilter";
 import { ResumenStats } from "./ResumenStats";
@@ -123,16 +124,16 @@ export function IngresosReportPage() {
             <SerieLineChart
               data={serieNumerica}
               xKey="periodo"
-              lines={[{ dataKey: "neto", name: "Neto por método", color: "#0D7480" }]}
+              lines={[{ dataKey: "neto", name: "Neto por método", color: CHART_COLORS.primary }]}
             />
           ) : (
             <SerieLineChart
               data={serieNumerica}
               xKey="periodo"
               lines={[
-                { dataKey: "ingresos", name: "Ingresos", color: "#0D7480" },
-                { dataKey: "reembolsos", name: "Reembolsos", color: "#B5533C" },
-                { dataKey: "neto", name: "Neto", color: "#C08054" },
+                { dataKey: "ingresos", name: "Ingresos", color: CHART_COLORS.primary },
+                { dataKey: "reembolsos", name: "Reembolsos", color: CHART_COLORS.destructive },
+                { dataKey: "neto", name: "Neto", color: CHART_COLORS.wood },
               ]}
             />
           )}

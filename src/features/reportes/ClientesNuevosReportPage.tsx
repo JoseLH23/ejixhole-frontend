@@ -3,6 +3,7 @@ import * as React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { CHART_COLORS } from "@/lib/chartColors";
 import { PeriodoFilter, type PeriodoFiltroValue } from "./PeriodoFilter";
 import { ResumenStats } from "./ResumenStats";
 import { SerieLineChart } from "./SerieLineChart";
@@ -54,7 +55,7 @@ export function ClientesNuevosReportPage() {
             <SerieLineChart
               data={data.serie}
               xKey="periodo"
-              lines={[{ dataKey: "num_clientes", name: "Clientes nuevos", color: "#C08054" }]}
+              lines={[{ dataKey: "num_clientes", name: "Clientes nuevos", color: CHART_COLORS.wood }]}
             />
           )}
         </>

@@ -3,7 +3,7 @@ import { Plus, Wallet, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { EstadoBadge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
@@ -57,7 +57,7 @@ export function CajaPage() {
       cell: (m) => (
         <span className="flex items-center gap-1">
           {m.tipo === "ingreso" ? (
-            <ArrowUpCircle className="h-4 w-4 text-emerald-600" />
+            <ArrowUpCircle className="h-4 w-4 text-success" />
           ) : (
             <ArrowDownCircle className="h-4 w-4 text-destructive" />
           )}
@@ -77,7 +77,7 @@ export function CajaPage() {
     { header: "Cierre", cell: (s) => (s.fecha_cierre ? s.fecha_cierre.slice(0, 16).replace("T", " ") : "—") },
     {
       header: "Estado",
-      cell: (s) => <Badge variant={s.estado === "abierta" ? "default" : "outline"}>{s.estado}</Badge>,
+      cell: (s) => <EstadoBadge estado={s.estado} />,
     },
     {
       header: "Diferencia",
@@ -90,7 +90,7 @@ export function CajaPage() {
               Number(s.diferencia) < 0
                 ? "text-destructive"
                 : Number(s.diferencia) > 0
-                  ? "text-emerald-600"
+                  ? "text-success"
                   : ""
             }
           >
@@ -166,7 +166,7 @@ export function CajaPage() {
                     Abierta el {sesionActual.fecha_apertura.slice(0, 16).replace("T", " ")}
                   </CardDescription>
                 </div>
-                <Badge variant="default">abierta</Badge>
+                <EstadoBadge estado="abierta" />
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
