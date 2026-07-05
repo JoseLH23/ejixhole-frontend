@@ -2,8 +2,8 @@
 
 Portal de administración. Ver `docs/frontend-diseno.md` (arquitectura
 completa aprobada), `docs/entrega-1.md` (infraestructura), `docs/entrega-2.md`
-(Dashboard real), `docs/entrega-3a.md` (infraestructura CRUD + Clientes)
-y `docs/entrega-3b.md` (Servicios).
+(Dashboard real), `docs/entrega-3a.md` (infraestructura CRUD + Clientes),
+`docs/entrega-3b.md` (Servicios) y `docs/entrega-3c.md` (Reservaciones).
 
 ## Requisitos
 
@@ -75,9 +75,18 @@ el lugar correcto.
 - Dashboard real (`/dashboard/resumen`).
 - Clientes: listar, buscar, crear, editar, desactivar.
 - Servicios: listar, buscar, crear, editar, desactivar.
+- Reservaciones: listar (con filtros reales de estado/servicio/fechas), buscar, crear, cambiar estado, cancelar (con confirmación).
 
 ## Qué falta (a propósito, por entregas)
 
-Reservaciones, Pagos, Caja, Reportes, Usuarios — cada ruta ya navega y
-respeta permisos por rol, pero muestra "Próximamente" hasta su entrega
+Pagos, Caja, Reportes, Usuarios — cada ruta ya navega y respeta
+permisos por rol, pero muestra "Próximamente" hasta su entrega
 correspondiente.
+
+## Limitación real heredada del backend: no se pueden editar los datos de una reservación
+
+El backend nunca implementó un endpoint para modificar
+fecha/personas/cliente/servicio de una reservación ya creada — solo
+`POST` (crear), `GET` (listar/detalle) y `PATCH .../estado` (cambiar
+estado). Por eso "editar" en este módulo significa **cambiar
+estado**, no un formulario de edición completo. Ver `docs/entrega-3c.md`.
