@@ -1,7 +1,9 @@
 # EjiXhole Experience OS — Frontend (React)
 
 Portal de administración. Ver `docs/frontend-diseno.md` (arquitectura
-completa aprobada) y `docs/entrega-1.md` (qué cubre esta entrega).
+completa aprobada), `docs/entrega-1.md` (infraestructura), `docs/entrega-2.md`
+(Dashboard real), `docs/entrega-3a.md` (infraestructura CRUD + Clientes)
+y `docs/entrega-3b.md` (Servicios).
 
 ## Requisitos
 
@@ -45,9 +47,11 @@ explicado. Resumen rápido:
 - `src/context/AuthContext.tsx` — sesión, login/logout, restauración de token.
 - `src/router/` — rutas, guards (`RequireAuth`, `RequireRole`), navegación.
 - `src/components/ui/` — primitivos shadcn/ui (escritos a mano, ver nota abajo).
+- `src/components/shared/` — infraestructura CRUD reutilizable: `DataTable`, `ConfirmDialog`, `EmptyState`, `ErrorState`, `TableSkeleton`.
 - `src/components/layout/` — Sidebar, Topbar, AppShell.
-- `src/features/` — un folder por módulo de negocio (por ahora solo `auth/`).
-- `src/pages/` — páginas que no pertenecen a un módulo específico (Home, 404, etc).
+- `src/lib/format.ts` — formateadores compartidos (moneda, etc.) — nunca se duplican por módulo.
+- `src/features/` — un folder por módulo de negocio: `auth/`, `dashboard/`, `clientes/`, `servicios/`.
+- `src/pages/` — páginas que no pertenecen a un módulo específico (404, no autorizado, placeholders).
 
 ## Nota sobre shadcn/ui
 
@@ -55,19 +59,25 @@ Los componentes en `src/components/ui/` se escribieron a mano
 siguiendo exactamente los patrones oficiales de shadcn/ui, porque no
 hay acceso a `npx shadcn@latest add ...` en el entorno donde se generó
 esto. Una vez que tengas `npm install` corrido, puedes usar el CLI
-normalmente para agregar más componentes (Select, Dialog, Table,
-Toast, etc. — los que faltan para las próximas entregas):
+normalmente para agregar los que falten (Select, Toast con Radix,
+etc.):
 
 ```bash
-npx shadcn@latest add select dialog table toast
+npx shadcn@latest add select
 ```
 
 `components.json` ya está configurado para que el CLI los coloque en
 el lugar correcto.
 
-## Qué NO incluye esta entrega (a propósito)
+## Qué ya funciona
 
-CRUDs de Clientes/Reservaciones/Servicios/Pagos/Caja, Dashboard real
-(tarjetas de KPIs), Reportes. Cada sección del menú ya navega y
-respeta permisos por rol, pero muestra una pantalla "Próximamente"
-— ver `docs/entrega-1.md`.
+- Login, sesión JWT, protección de rutas por rol.
+- Dashboard real (`/dashboard/resumen`).
+- Clientes: listar, buscar, crear, editar, desactivar.
+- Servicios: listar, buscar, crear, editar, desactivar.
+
+## Qué falta (a propósito, por entregas)
+
+Reservaciones, Pagos, Caja, Reportes, Usuarios — cada ruta ya navega y
+respeta permisos por rol, pero muestra "Próximamente" hasta su entrega
+correspondiente.
