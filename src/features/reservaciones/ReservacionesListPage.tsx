@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Plus, Search, CheckCircle2, XCircle, FlagTriangleRight } from "lucide-react";
+import { Plus, Search, CheckCircle2, XCircle, FlagTriangleRight, Wallet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import { useClientes } from "@/features/clientes/useClientes";
 import { useServicios } from "@/features/servicios/useServicios";
 import { useReservaciones, useCambiarEstadoReservacion } from "./useReservaciones";
 import { ReservacionFormModal } from "./ReservacionFormModal";
+import { PagoModal } from "@/features/pagos/PagoModal";
 import { ESTADOS_RESERVACION, type EstadoReservacion, type Reservacion } from "@/types/reservacion";
 
 const FILTRO_TODOS = "todos";
@@ -54,6 +55,7 @@ export function ReservacionesListPage() {
   const busquedaDebounced = useDebounce(busqueda);
 
   const [modalAbierto, setModalAbierto] = React.useState(false);
+  const [pagoReservacionId, setPagoReservacionId] = React.useState<number | null>(null);
   const [transicionPendiente, setTransicionPendiente] = React.useState<{
     reservacion: Reservacion;
     nuevoEstado: EstadoReservacion;
@@ -247,6 +249,10 @@ export function ReservacionesListPage() {
           getRowId={(r) => r.id}
           renderAcciones={(r) => (
             <div className="flex justify-end gap-1">
+              <Button variant="ghost" size="sm" onClick={() => setPagoReservacionId(r.id)}>
+                <Wallet className="mr-1 h-4 w-4" />
+                Pagos
+              </Button>
               {accionesDisponibles(r.estado).map((accion) => (
                 <Button
                   key={accion.label}
@@ -265,6 +271,15 @@ export function ReservacionesListPage() {
       )}
 
       <ReservacionFormModal open={modalAbierto} onOpenChange={setModalAbierto} />
+
+      {pagoReservacionId !== null && (
+        <PagoModal
+          open={pagoReservacionId !== null}
+          onOpenChange={(open) => !open && setPagoReservacionId(null)}
+          reservacionId={pagoReservacionId}
+          reservacionContexto={(reservaciones ?? []).find((r) => r.id === pagoReservacionId)}
+        />
+      )}
 
       <ConfirmDialog
         open={transicionPendiente !== null}

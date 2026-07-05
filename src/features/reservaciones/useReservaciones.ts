@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { reservacionesApi, type ListarReservacionesParams } from "@/api/reservaciones";
 import type { EstadoReservacion, ReservacionCreateInput } from "@/types/reservacion";
 
-const RESERVACIONES_QUERY_KEY = ["reservaciones"] as const;
+export const RESERVACIONES_QUERY_KEY = ["reservaciones"] as const;
 
 export function useReservaciones(params: ListarReservacionesParams = {}) {
   return useQuery({

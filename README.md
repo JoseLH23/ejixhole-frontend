@@ -3,7 +3,8 @@
 Portal de administración. Ver `docs/frontend-diseno.md` (arquitectura
 completa aprobada), `docs/entrega-1.md` (infraestructura), `docs/entrega-2.md`
 (Dashboard real), `docs/entrega-3a.md` (infraestructura CRUD + Clientes),
-`docs/entrega-3b.md` (Servicios) y `docs/entrega-3c.md` (Reservaciones).
+`docs/entrega-3b.md` (Servicios), `docs/entrega-3c.md` (Reservaciones)
+y `docs/entrega-3d.md` (Pagos).
 
 ## Requisitos
 
@@ -75,18 +76,22 @@ el lugar correcto.
 - Dashboard real (`/dashboard/resumen`).
 - Clientes: listar, buscar, crear, editar, desactivar.
 - Servicios: listar, buscar, crear, editar, desactivar.
-- Reservaciones: listar (con filtros reales de estado/servicio/fechas), buscar, crear, cambiar estado, cancelar (con confirmación).
+- Reservaciones: listar (filtros reales), buscar, crear, cambiar estado, cancelar.
+- Pagos: bitácora general, historial por reservación, registrar (incluye reembolsos), integrado directo desde cada fila de Reservaciones.
 
 ## Qué falta (a propósito, por entregas)
 
-Pagos, Caja, Reportes, Usuarios — cada ruta ya navega y respeta
-permisos por rol, pero muestra "Próximamente" hasta su entrega
-correspondiente.
+Caja, Reportes, Usuarios — cada ruta ya navega y respeta permisos por
+rol, pero muestra "Próximamente" hasta su entrega correspondiente.
 
-## Limitación real heredada del backend: no se pueden editar los datos de una reservación
+## Limitaciones reales heredadas del backend (documentadas, no ocultas)
 
-El backend nunca implementó un endpoint para modificar
-fecha/personas/cliente/servicio de una reservación ya creada — solo
-`POST` (crear), `GET` (listar/detalle) y `PATCH .../estado` (cambiar
-estado). Por eso "editar" en este módulo significa **cambiar
-estado**, no un formulario de edición completo. Ver `docs/entrega-3c.md`.
+1. **No se pueden editar los datos de una reservación** — solo cambiar
+   su estado. Ver `docs/entrega-3c.md`.
+2. **El rol `cajero` no puede listar reservaciones** (`GET /reservaciones`
+   es admin+operador únicamente), aunque sí tiene acceso a Pagos. La
+   pantalla `/pagos` cae a un campo de ID manual cuando esto pasa. Ver
+   `docs/entrega-3d.md`.
+3. **El JWT no trae el `usuario_id` numérico** — se pide una vez y se
+   cachea en el navegador (`useUsuarioIdTemporal`), reutilizado en
+   Reservaciones y Pagos.
