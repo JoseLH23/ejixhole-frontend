@@ -9,6 +9,7 @@ import { ClientesListPage } from "@/features/clientes/ClientesListPage";
 import { ServiciosListPage } from "@/features/servicios/ServiciosListPage";
 import { ReservacionesListPage } from "@/features/reservaciones/ReservacionesListPage";
 import { PagosListPage } from "@/features/pagos/PagosListPage";
+import { CajaPage } from "@/features/caja/CajaPage";
 import { ComingSoonPage } from "@/pages/ComingSoonPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { UnauthorizedPage } from "@/pages/UnauthorizedPage";
@@ -40,7 +41,7 @@ export function AppRouter() {
             </Route>
 
             <Route element={<RequireRole roles={["admin", "operador", "cajero"]} />}>
-              <Route path="/caja" element={<ComingSoonPage titulo="Caja" />} />
+              <Route path="/caja" element={<CajaPage />} />
             </Route>
           </Route>
         </Route>
