@@ -8,6 +8,7 @@ import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
+import { FilterBar } from "@/components/shared/FilterBar";
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatearMoneda } from "@/lib/format";
 import { useReservaciones } from "@/features/reservaciones/useReservaciones";
@@ -92,7 +93,7 @@ export function PagosListPage() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-end gap-3">
+      <FilterBar>
         <div className="relative w-full max-w-xs">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -136,7 +137,7 @@ export function PagosListPage() {
             </SelectContent>
           </Select>
         </div>
-      </div>
+      </FilterBar>
 
       {isLoading && <TableSkeleton columnas={6} />}
 

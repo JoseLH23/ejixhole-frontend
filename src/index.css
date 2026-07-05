@@ -101,15 +101,39 @@
 }
 
 /*
-  Elemento de firma: curvas tipo río, usadas SOLO en el fondo del
-  Login. Deliberadamente el único lugar del sistema con esta
-  decoración — el resto de la app queda disciplinado. Colores
-  actualizados a la nueva paleta (turquesa + madera).
+  Entrega 6 — Rediseño radical. El "river-pattern" sutil de mosaico
+  pequeño (Entregas 1-5) se reemplaza por un fondo mucho más audaz:
+  una malla de degradados animada, usada en paneles hero (Login,
+  Dashboard). Ya no es un detalle discreto — es una declaración visual.
 */
-.river-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Cpath d='M0 80C60 40 120 120 180 80C240 40 300 120 360 80C420 40 460 100 400 140' stroke='%23127A8A' stroke-width='2' fill='none' opacity='0.10'/%3E%3Cpath d='M0 180C60 140 120 220 180 180C240 140 300 220 360 180C420 140 460 200 400 240' stroke='%23127A8A' stroke-width='2' fill='none' opacity='0.08'/%3E%3Cpath d='M0 280C60 240 120 320 180 280C240 240 300 320 360 280C420 240 460 300 400 340' stroke='%23A9743F' stroke-width='2' fill='none' opacity='0.10'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 400px 400px;
+.gradient-mesh-hero {
+  background-color: hsl(var(--primary));
+  background-image:
+    radial-gradient(at 15% 20%, hsl(var(--secondary) / 0.55) 0px, transparent 55%),
+    radial-gradient(at 85% 15%, hsl(var(--wood) / 0.45) 0px, transparent 50%),
+    radial-gradient(at 50% 90%, hsl(152 55% 22% / 0.9) 0px, transparent 60%),
+    radial-gradient(at 90% 80%, hsl(var(--secondary) / 0.4) 0px, transparent 50%);
+  background-size: 200% 200%;
+  animation: mesh-drift 18s ease-in-out infinite;
+}
+
+@keyframes mesh-drift {
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 40% 30%; }
+}
+
+/* Panel de vidrio esmerilado — usado para flotar contenido sobre el mesh. */
+.glass-panel {
+  background: hsl(var(--surface) / 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid hsl(0 0% 100% / 0.15);
+}
+
+/* Textura de puntos sutil — profundidad extra sin ruido visual. */
+.dot-grid {
+  background-image: radial-gradient(hsl(0 0% 100% / 0.14) 1px, transparent 1px);
+  background-size: 22px 22px;
 }
 
 /* Shimmer premium para skeletons — reemplaza el animate-pulse plano */

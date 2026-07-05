@@ -6,7 +6,8 @@ completa aprobada), `docs/entrega-1.md` (infraestructura), `docs/entrega-2.md`
 `docs/entrega-3b.md` (Servicios), `docs/entrega-3c.md` (Reservaciones),
 `docs/entrega-3d.md` (Pagos), `docs/entrega-3e.md` (Caja),
 `docs/entrega-3f.md` (Reportes), `docs/entrega-4-pulido.md` (pulido UX)
-y `docs/entrega-5-premium-ui.md` (branding e identidad visual premium).
+`docs/entrega-5-premium-ui.md` (branding e identidad visual premium)
+y `docs/entrega-6-rediseno-radical.md` (rediseño estructural completo).
 
 ## Requisitos
 

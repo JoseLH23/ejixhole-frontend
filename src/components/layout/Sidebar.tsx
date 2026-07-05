@@ -1,26 +1,35 @@
+import * as React from "react";
 import { NavLink } from "react-router-dom";
-import { Waves, X, Leaf } from "lucide-react";
+import { Waves, X, Command } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
-import { NAV_ITEMS } from "@/router/navigation";
+import { NAV_ITEMS, type NavItem } from "@/router/navigation";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
-  /** Controla visibilidad SOLO en mobile (< md) — en desktop siempre está visible. */
   abiertoEnMobile: boolean;
   onCerrar: () => void;
+  onAbrirPaleta: () => void;
 }
 
-export function Sidebar({ abiertoEnMobile, onCerrar }: SidebarProps) {
+const ORDEN_GRUPOS: NavItem["grupo"][] = ["Principal", "Operación", "Análisis", "Administración"];
+
+/**
+ * Rediseño total (Entrega 6): navegación agrupada por sección
+ * (Principal / Operación / Análisis / Administración) con etiquetas
+ * discretas en mayúsculas — el lenguaje visual de Linear/Notion, en
+ * vez de una lista plana de 8 links iguales.
+ */
+export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarProps) {
   const { usuario } = useAuth();
 
-  const itemsVisibles = NAV_ITEMS.filter(
-    (item) => usuario && item.roles.includes(usuario.rol)
-  );
+  const gruposVisibles = ORDEN_GRUPOS.map((grupo) => ({
+    grupo,
+    items: NAV_ITEMS.filter((item) => item.grupo === grupo && usuario && item.roles.includes(usuario.rol)),
+  })).filter((g) => g.items.length > 0);
 
   return (
     <>
-      {/* Overlay oscuro detrás del sidebar en mobile, cierra al tocar fuera */}
       {abiertoEnMobile && (
         <div
           className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-[2px] transition-opacity md:hidden"
@@ -35,20 +44,12 @@ export function Sidebar({ abiertoEnMobile, onCerrar }: SidebarProps) {
           abiertoEnMobile ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Logo — insignia con degradado verde selva → turquesa agua,
-            la firma visual de marca en el punto más prominente de la app. */}
         <div className="flex h-16 items-center justify-between gap-2 border-b border-border px-5">
           <div className="flex items-center gap-2.5">
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary text-primary-foreground shadow-premium">
-              <Waves className="h-5 w-5" />
-              <Leaf className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full bg-wood p-0.5 text-wood-foreground shadow-sm" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+              <Waves className="h-4 w-4" />
             </div>
-            <div className="leading-tight">
-              <p className="font-display text-lg font-semibold">EjiXhole</p>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                Experience OS
-              </p>
-            </div>
+            <span className="font-display text-base font-semibold">EjiXhole</span>
           </div>
           <button
             onClick={onCerrar}
@@ -59,39 +60,53 @@ export function Sidebar({ abiertoEnMobile, onCerrar }: SidebarProps) {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {itemsVisibles.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.path === "/"}
-                onClick={onCerrar}
-                className={({ isActive }) =>
-                  cn(
-                    "group relative flex items-center gap-3 overflow-hidden rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-premium"
-                      : "text-foreground/75 hover:translate-x-0.5 hover:bg-accent hover:text-accent-foreground"
-                  )
-                }
-              >
-                <Icon
-                  className={cn(
-                    "h-4 w-4 shrink-0 transition-transform duration-150 group-hover:scale-110"
-                  )}
-                />
-                {item.label}
-              </NavLink>
-            );
-          })}
-        </nav>
-
-        <div className="flex items-center gap-2 border-t border-border p-4 text-xs text-muted-foreground">
-          <Leaf className="h-3.5 w-3.5 text-primary/70" />
-          EjiXhole Experience OS
+        {/* Disparador de la paleta de comandos — se ve como un input pero abre ⌘K */}
+        <div className="p-3">
+          <button
+            onClick={onAbrirPaleta}
+            className="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted"
+          >
+            <span className="flex items-center gap-2">
+              <Command className="h-3.5 w-3.5" />
+              Buscar...
+            </span>
+            <kbd className="rounded border border-border bg-background px-1.5 py-0.5 text-[10px]">⌘K</kbd>
+          </button>
         </div>
+
+        <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-3">
+          {gruposVisibles.map(({ grupo, items }) => (
+            <div key={grupo}>
+              <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                {grupo}
+              </p>
+              <div className="space-y-0.5">
+                {items.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      end={item.path === "/"}
+                      onClick={onCerrar}
+                      className={({ isActive }) =>
+                        cn(
+                          "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
+                          isActive
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "text-foreground/70 hover:bg-accent hover:text-accent-foreground"
+                        )
+                      }
+                    >
+                      <Icon className="h-4 w-4 shrink-0 transition-transform duration-150 group-hover:scale-110" />
+                      {item.label}
+                    </NavLink>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
       </aside>
     </>
   );

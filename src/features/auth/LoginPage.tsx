@@ -3,13 +3,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate, useLocation, Navigate } from "react-router-dom";
-import { Waves } from "lucide-react";
+import { Waves, Leaf, ArrowRight } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { ParkIllustration } from "@/components/brand/ParkIllustration";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Ingresa tu email").email("Email inválido"),
@@ -18,6 +18,13 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+/**
+ * Rediseño total (Entrega 6): split-screen, inspirado en pantallas de
+ * login de Linear/Stripe/Vercel — un panel hero grande con la
+ * identidad de marca (degradado animado + ilustración propia de la
+ * selva/cascada) y el formulario en un panel limpio y minimalista al
+ * lado, no una tarjeta flotando sobre un fondo tenue como antes.
+ */
 export function LoginPage() {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -32,8 +39,6 @@ export function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  // Si ya hay sesión (ej. el usuario navegó manualmente a /login), no
-  // tiene sentido mostrarle el formulario de nuevo.
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
@@ -56,17 +61,48 @@ export function LoginPage() {
   };
 
   return (
-    <div className="river-pattern flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-sm shadow-lg">
-        <CardHeader className="items-center text-center">
-          <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <Waves className="h-6 w-6" />
+    <div className="flex min-h-screen">
+      {/* Panel hero — solo desktop, es la pieza de marca más grande de toda la app */}
+      <div className="gradient-mesh-hero dot-grid relative hidden w-1/2 flex-col justify-between overflow-hidden p-12 text-primary-foreground lg:flex">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15">
+            <Waves className="h-5 w-5" />
           </div>
-          <CardTitle className="font-display text-2xl">EjiXhole</CardTitle>
-          <CardDescription>Experience OS — inicia sesión para continuar</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <span className="font-display text-lg font-semibold">EjiXhole</span>
+        </div>
+
+        <div className="relative z-10 max-w-md animate-fade-in-up">
+          <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
+            <Leaf className="h-3 w-3" /> Experience OS
+          </p>
+          <h1 className="font-display text-4xl font-semibold leading-tight">
+            La selva y el agua, ahora también en tu operación diaria.
+          </h1>
+          <p className="mt-4 text-sm text-primary-foreground/80">
+            Reservaciones, pagos, caja y reportes del parque — todo en un solo lugar,
+            hecho a la medida de EjiXhole.
+          </p>
+        </div>
+
+        <ParkIllustration className="pointer-events-none absolute inset-x-0 bottom-0 h-64 w-full opacity-90" />
+      </div>
+
+      {/* Panel de formulario */}
+      <div className="flex w-full flex-1 flex-col items-center justify-center bg-background p-6 lg:w-1/2">
+        <div className="w-full max-w-sm">
+          <div className="mb-8 flex flex-col items-center text-center lg:hidden">
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+              <Waves className="h-6 w-6" />
+            </div>
+            <p className="font-display text-xl font-semibold">EjiXhole</p>
+          </div>
+
+          <h2 className="font-display text-2xl font-semibold">Bienvenido de vuelta</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Inicia sesión para continuar con tu operación.
+          </p>
+
+          <form className="mt-8 space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -99,12 +135,15 @@ export function LoginPage() {
               </p>
             )}
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button type="submit" className="w-full group" size="lg" disabled={isSubmitting}>
               {isSubmitting ? "Ingresando..." : "Iniciar sesión"}
+              {!isSubmitting && (
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              )}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

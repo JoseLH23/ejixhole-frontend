@@ -10,6 +10,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
+import { FilterBar } from "@/components/shared/FilterBar";
 import { useToast } from "@/components/ui/toast-provider";
 import { useErrorToast } from "@/hooks/useErrorToast";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -161,7 +162,7 @@ export function ReservacionesListPage() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-end gap-3">
+      <FilterBar>
         <div className="relative w-full max-w-xs">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -214,7 +215,7 @@ export function ReservacionesListPage() {
           <label className="text-xs font-medium text-muted-foreground">Hasta</label>
           <Input type="date" className="w-40" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} />
         </div>
-      </div>
+      </FilterBar>
 
       {isLoading && <TableSkeleton columnas={6} />}
 
