@@ -1,0 +1,108 @@
+import * as React from "react";
+import { jwtDecode } from "jwt-decode";
+
+import { authApi } from "@/api/auth";
+import {
+  clearStoredToken,
+  getStoredToken,
+  registerUnauthorizedHandler,
+  setStoredToken,
+} from "@/api/client";
+import type { JwtPayload, Rol, UsuarioActual } from "@/types/auth";
+
+interface AuthContextValue {
+  usuario: UsuarioActual | null;
+  isAuthenticated: boolean;
+  /** true mientras se intenta restaurar la sesión desde localStorage al cargar la app */
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+  /** true si el rol actual está en la lista dada — para RequireRole y el Sidebar */
+  tieneRol: (rolesPermitidos: Rol[]) => boolean;
+}
+
+const AuthContext = React.createContext<AuthContextValue | undefined>(undefined);
+
+function decodificarUsuario(token: string): UsuarioActual | null {
+  try {
+    const payload = jwtDecode<JwtPayload>(token);
+
+    // Solo lectura del payload — la verificación de firma/expiración
+    // real la sigue haciendo el backend en cada request. Aquí solo se
+    // usa exp para decidir si vale la pena restaurar la sesión sin
+    // esperar a que el backend responda 401.
+    const ahora = Date.now() / 1000;
+    if (payload.exp < ahora) {
+      return null;
+    }
+
+    return { email: payload.sub, rol: payload.rol as Rol };
+  } catch {
+    return null;
+  }
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [usuario, setUsuario] = React.useState<UsuarioActual | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  // Al montar la app: si hay un token guardado y no expiró, restaura
+  // la sesión sin pedirle credenciales de nuevo al usuario.
+  React.useEffect(() => {
+    const token = getStoredToken();
+    if (token) {
+      const usuarioRestaurado = decodificarUsuario(token);
+      if (usuarioRestaurado) {
+        setUsuario(usuarioRestaurado);
+      } else {
+        clearStoredToken();
+      }
+    }
+    setIsLoading(false);
+  }, []);
+
+  // El interceptor de Axios (api/client.ts) no puede importar este
+  // Context directamente (evita acoplar la capa de API a React), así
+  // que le registra un callback simple para cuando llegue un 401.
+  React.useEffect(() => {
+    registerUnauthorizedHandler(() => {
+      setUsuario(null);
+    });
+  }, []);
+
+  const login = React.useCallback(async (email: string, password: string) => {
+    const { access_token } = await authApi.login({ email, password });
+    setStoredToken(access_token);
+    const usuarioLogueado = decodificarUsuario(access_token);
+    setUsuario(usuarioLogueado);
+  }, []);
+
+  const logout = React.useCallback(() => {
+    clearStoredToken();
+    setUsuario(null);
+  }, []);
+
+  const tieneRol = React.useCallback(
+    (rolesPermitidos: Rol[]) => (usuario ? rolesPermitidos.includes(usuario.rol) : false),
+    [usuario]
+  );
+
+  const value: AuthContextValue = {
+    usuario,
+    isAuthenticated: usuario !== null,
+    isLoading,
+    login,
+    logout,
+    tieneRol,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthContextValue {
+  const context = React.useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth debe usarse dentro de <AuthProvider>");
+  }
+  return context;
+}

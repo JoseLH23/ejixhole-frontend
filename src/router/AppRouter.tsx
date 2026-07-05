@@ -1,0 +1,48 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import { AppShell } from "@/components/layout/AppShell";
+import { RequireAuth } from "./RequireAuth";
+import { RequireRole } from "./RequireRole";
+import { LoginPage } from "@/features/auth/LoginPage";
+import { HomePage } from "@/pages/HomePage";
+import { ComingSoonPage } from "@/pages/ComingSoonPage";
+import { NotFoundPage } from "@/pages/NotFoundPage";
+import { UnauthorizedPage } from "@/pages/UnauthorizedPage";
+
+export function AppRouter() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+
+        <Route element={<RequireAuth />}>
+          <Route element={<AppShell />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/no-autorizado" element={<UnauthorizedPage />} />
+
+            <Route element={<RequireRole roles={["admin", "operador"]} />}>
+              <Route path="/clientes" element={<ComingSoonPage titulo="Clientes" />} />
+              <Route path="/reservaciones" element={<ComingSoonPage titulo="Reservaciones" />} />
+            </Route>
+
+            <Route element={<RequireRole roles={["admin"]} />}>
+              <Route path="/servicios" element={<ComingSoonPage titulo="Servicios" />} />
+              <Route path="/reportes" element={<ComingSoonPage titulo="Reportes" />} />
+              <Route path="/usuarios" element={<ComingSoonPage titulo="Usuarios" />} />
+            </Route>
+
+            <Route element={<RequireRole roles={["admin", "cajero"]} />}>
+              <Route path="/pagos" element={<ComingSoonPage titulo="Pagos" />} />
+            </Route>
+
+            <Route element={<RequireRole roles={["admin", "operador", "cajero"]} />}>
+              <Route path="/caja" element={<ComingSoonPage titulo="Caja" />} />
+            </Route>
+          </Route>
+        </Route>
+
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
