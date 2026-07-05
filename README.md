@@ -4,7 +4,8 @@ Portal de administración. Ver `docs/frontend-diseno.md` (arquitectura
 completa aprobada), `docs/entrega-1.md` (infraestructura), `docs/entrega-2.md`
 (Dashboard real), `docs/entrega-3a.md` (infraestructura CRUD + Clientes),
 `docs/entrega-3b.md` (Servicios), `docs/entrega-3c.md` (Reservaciones),
-`docs/entrega-3d.md` (Pagos) y `docs/entrega-3e.md` (Caja).
+`docs/entrega-3d.md` (Pagos), `docs/entrega-3e.md` (Caja) y
+`docs/entrega-3f.md` (Reportes).
 
 ## Requisitos
 
@@ -78,12 +79,13 @@ el lugar correcto.
 - Servicios: listar, buscar, crear, editar, desactivar.
 - Reservaciones: listar (filtros reales), buscar, crear, cambiar estado, cancelar.
 - Pagos: bitácora general, historial por reservación, registrar (incluye reembolsos), integrado desde Reservaciones.
-- Caja: abrir, cerrar (con confirmación mostrando faltante/sobrante), registrar movimientos, ver mi caja actual, historial de todas las sesiones.
+- Caja: abrir, cerrar (con confirmación), registrar movimientos, mi caja actual, historial.
+- Reportes: los 10 reportes existentes en el backend, con filtros de fecha reutilizables, tablas y 3 gráficas de línea + 1 de barras.
 
 ## Qué falta (a propósito, por entregas)
 
-Reportes, Usuarios — cada ruta ya navega y respeta permisos por rol,
-pero muestra "Próximamente" hasta su entrega correspondiente.
+Usuarios (admin) — la ruta ya navega y respeta permisos por rol, pero
+muestra "Próximamente" hasta su entrega.
 
 ## Limitaciones reales heredadas del backend (documentadas, no ocultas)
 

@@ -10,6 +10,17 @@ import { ServiciosListPage } from "@/features/servicios/ServiciosListPage";
 import { ReservacionesListPage } from "@/features/reservaciones/ReservacionesListPage";
 import { PagosListPage } from "@/features/pagos/PagosListPage";
 import { CajaPage } from "@/features/caja/CajaPage";
+import { ReportesHubPage } from "@/features/reportes/ReportesHubPage";
+import { IngresosReportPage } from "@/features/reportes/IngresosReportPage";
+import { CuentasPorCobrarReportPage } from "@/features/reportes/CuentasPorCobrarReportPage";
+import { OcupacionReportPage } from "@/features/reportes/OcupacionReportPage";
+import { ServiciosMasVendidosReportPage } from "@/features/reportes/ServiciosMasVendidosReportPage";
+import { ClientesFrecuentesReportPage } from "@/features/reportes/ClientesFrecuentesReportPage";
+import { ReservacionesPorEstadoReportPage } from "@/features/reportes/ReservacionesPorEstadoReportPage";
+import { CancelacionesReportPage } from "@/features/reportes/CancelacionesReportPage";
+import { TendenciaReservacionesReportPage } from "@/features/reportes/TendenciaReservacionesReportPage";
+import { ClientesNuevosReportPage } from "@/features/reportes/ClientesNuevosReportPage";
+import { ProximasReservacionesReportPage } from "@/features/reportes/ProximasReservacionesReportPage";
 import { ComingSoonPage } from "@/pages/ComingSoonPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { UnauthorizedPage } from "@/pages/UnauthorizedPage";
@@ -32,7 +43,17 @@ export function AppRouter() {
 
             <Route element={<RequireRole roles={["admin"]} />}>
               <Route path="/servicios" element={<ServiciosListPage />} />
-              <Route path="/reportes" element={<ComingSoonPage titulo="Reportes" />} />
+              <Route path="/reportes" element={<ReportesHubPage />} />
+              <Route path="/reportes/ingresos" element={<IngresosReportPage />} />
+              <Route path="/reportes/cuentas-por-cobrar" element={<CuentasPorCobrarReportPage />} />
+              <Route path="/reportes/ocupacion" element={<OcupacionReportPage />} />
+              <Route path="/reportes/servicios-mas-vendidos" element={<ServiciosMasVendidosReportPage />} />
+              <Route path="/reportes/clientes-frecuentes" element={<ClientesFrecuentesReportPage />} />
+              <Route path="/reportes/reservaciones-por-estado" element={<ReservacionesPorEstadoReportPage />} />
+              <Route path="/reportes/cancelaciones" element={<CancelacionesReportPage />} />
+              <Route path="/reportes/tendencia-reservaciones" element={<TendenciaReservacionesReportPage />} />
+              <Route path="/reportes/clientes-nuevos" element={<ClientesNuevosReportPage />} />
+              <Route path="/reportes/proximas-reservaciones" element={<ProximasReservacionesReportPage />} />
               <Route path="/usuarios" element={<ComingSoonPage titulo="Usuarios" />} />
             </Route>
 
