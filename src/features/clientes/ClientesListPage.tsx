@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { useToast } from "@/components/ui/toast-provider";
+import { useErrorToast } from "@/hooks/useErrorToast";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useClientes, useDesactivarCliente } from "./useClientes";
 import { ClienteFormModal } from "./ClienteFormModal";
@@ -33,6 +34,7 @@ export function ClientesListPage() {
   const { data: clientes, isLoading, isError, error, refetch, isFetching } = useClientes();
   const desactivar = useDesactivarCliente();
   const { toast } = useToast();
+  const mostrarError = useErrorToast();
 
   const [busqueda, setBusqueda] = React.useState("");
   const busquedaDebounced = useDebounce(busqueda);
@@ -63,13 +65,8 @@ export function ClientesListPage() {
         toast({ title: "Cliente desactivado", variant: "success" });
         setClienteDesactivar(null);
       },
-      onError: (error: any) => {
-        const detail = error?.response?.data?.detail;
-        toast({
-          title: "No se pudo desactivar",
-          description: typeof detail === "string" ? detail : "Intenta de nuevo.",
-          variant: "error",
-        });
+      onError: (error) => {
+        mostrarError(error, "No se pudo desactivar");
         setClienteDesactivar(null);
       },
     });

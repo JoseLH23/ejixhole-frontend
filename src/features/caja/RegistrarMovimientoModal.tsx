@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast-provider";
+import { useErrorToast } from "@/hooks/useErrorToast";
 import { useUsuarioIdTemporal } from "@/hooks/useUsuarioIdTemporal";
 import { TIPOS_MOVIMIENTO } from "@/types/caja";
 import { useRegistrarMovimiento } from "./useCaja";
@@ -46,6 +47,7 @@ interface RegistrarMovimientoModalProps {
 
 export function RegistrarMovimientoModal({ open, onOpenChange, sesionId }: RegistrarMovimientoModalProps) {
   const { toast } = useToast();
+  const mostrarError = useErrorToast();
   const { usuarioId, setUsuarioId } = useUsuarioIdTemporal();
   const registrar = useRegistrarMovimiento();
 
@@ -82,14 +84,7 @@ export function RegistrarMovimientoModal({ open, onOpenChange, sesionId }: Regis
           toast({ title: "Movimiento registrado", variant: "success" });
           onOpenChange(false);
         },
-        onError: (error: any) => {
-          const detail = error?.response?.data?.detail;
-          toast({
-            title: "No se pudo registrar el movimiento",
-            description: typeof detail === "string" ? detail : "Intenta de nuevo.",
-            variant: "error",
-          });
-        },
+        onError: (error) => mostrarError(error, "No se pudo registrar el movimiento"),
       }
     );
   };

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast-provider";
+import { useErrorToast } from "@/hooks/useErrorToast";
 import { useUsuarioIdTemporal } from "@/hooks/useUsuarioIdTemporal";
 import { useAbrirCaja } from "./useCaja";
 
@@ -39,6 +40,7 @@ interface AbrirCajaModalProps {
 
 export function AbrirCajaModal({ open, onOpenChange }: AbrirCajaModalProps) {
   const { toast } = useToast();
+  const mostrarError = useErrorToast();
   const { usuarioId, setUsuarioId } = useUsuarioIdTemporal();
   const abrir = useAbrirCaja();
 
@@ -63,14 +65,7 @@ export function AbrirCajaModal({ open, onOpenChange }: AbrirCajaModalProps) {
           toast({ title: "Caja abierta", variant: "success" });
           onOpenChange(false);
         },
-        onError: (error: any) => {
-          const detail = error?.response?.data?.detail;
-          toast({
-            title: "No se pudo abrir la caja",
-            description: typeof detail === "string" ? detail : "Intenta de nuevo.",
-            variant: "error",
-          });
-        },
+        onError: (error) => mostrarError(error, "No se pudo abrir la caja"),
       }
     );
   };

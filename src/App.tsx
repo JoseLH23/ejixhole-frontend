@@ -7,7 +7,14 @@ import { AppRouter } from "@/router/AppRouter";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: (failureCount, error: any) => {
+        // Reintentar un 401/403 no sirve de nada (el token es inválido
+        // o el rol no alcanza, reintentar no lo cambia) y solo retrasa
+        // el mensaje de error al usuario.
+        const status = error?.response?.status;
+        if (status === 401 || status === 403) return false;
+        return failureCount < 1;
+      },
       refetchOnWindowFocus: false,
     },
   },

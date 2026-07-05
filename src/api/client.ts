@@ -55,7 +55,12 @@ export function registerUnauthorizedHandler(handler: () => void): void {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // El endpoint de login se excluye a propósito: un 401 ahí significa
+    // "contraseña incorrecta" (ya lo maneja LoginPage con su propio
+    // mensaje), no "tu sesión expiró" — mostrar ambos sería confuso.
+    const esLogin = error.config?.url?.includes("/auth/login");
+
+    if (error.response?.status === 401 && !esLogin) {
       clearStoredToken();
       onUnauthorized?.();
     }

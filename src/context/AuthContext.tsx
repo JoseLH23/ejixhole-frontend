@@ -8,6 +8,7 @@ import {
   registerUnauthorizedHandler,
   setStoredToken,
 } from "@/api/client";
+import { useToast } from "@/components/ui/toast-provider";
 import type { JwtPayload, Rol, UsuarioActual } from "@/types/auth";
 
 interface AuthContextValue {
@@ -45,6 +46,15 @@ function decodificarUsuario(token: string): UsuarioActual | null {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [usuario, setUsuario] = React.useState<UsuarioActual | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+  const { toast } = useToast();
+
+  // Se usa una ref (no el estado directo) dentro del handler de 401
+  // porque ese handler se registra una sola vez (ver useEffect de
+  // abajo) — sin la ref, quedaría atado al valor de `usuario` del
+  // primer render (null), y nunca sabría si en verdad había una
+  // sesión activa que expiró.
+  const usuarioRef = React.useRef(usuario);
+  usuarioRef.current = usuario;
 
   // Al montar la app: si hay un token guardado y no expiró, restaura
   // la sesión sin pedirle credenciales de nuevo al usuario.
@@ -66,9 +76,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // que le registra un callback simple para cuando llegue un 401.
   React.useEffect(() => {
     registerUnauthorizedHandler(() => {
+      // Solo avisa "tu sesión expiró" si de verdad había una sesión —
+      // evita un toast confuso si el 401 llega sin que el usuario
+      // hubiera iniciado sesión nunca (ej. una llamada perdida).
+      if (usuarioRef.current !== null) {
+        toast({
+          title: "Sesión expirada",
+          description: "Vuelve a iniciar sesión para continuar.",
+          variant: "info",
+        });
+      }
       setUsuario(null);
     });
-  }, []);
+  }, [toast]);
 
   const login = React.useCallback(async (email: string, password: string) => {
     const { access_token } = await authApi.login({ email, password });

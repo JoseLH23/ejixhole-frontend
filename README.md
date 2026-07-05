@@ -4,8 +4,9 @@ Portal de administración. Ver `docs/frontend-diseno.md` (arquitectura
 completa aprobada), `docs/entrega-1.md` (infraestructura), `docs/entrega-2.md`
 (Dashboard real), `docs/entrega-3a.md` (infraestructura CRUD + Clientes),
 `docs/entrega-3b.md` (Servicios), `docs/entrega-3c.md` (Reservaciones),
-`docs/entrega-3d.md` (Pagos), `docs/entrega-3e.md` (Caja) y
-`docs/entrega-3f.md` (Reportes).
+`docs/entrega-3d.md` (Pagos), `docs/entrega-3e.md` (Caja),
+`docs/entrega-3f.md` (Reportes) y `docs/entrega-4-pulido.md` (pulido
+profesional: manejo de errores, responsive, UX).
 
 ## Requisitos
 

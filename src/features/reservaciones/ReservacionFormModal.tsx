@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast-provider";
+import { useErrorToast } from "@/hooks/useErrorToast";
 import { useClientes } from "@/features/clientes/useClientes";
 import { useServicios } from "@/features/servicios/useServicios";
 import { useUsuarioIdTemporal } from "@/hooks/useUsuarioIdTemporal";
@@ -57,6 +58,7 @@ interface ReservacionFormModalProps {
 
 export function ReservacionFormModal({ open, onOpenChange }: ReservacionFormModalProps) {
   const { toast } = useToast();
+  const mostrarError = useErrorToast();
   const crear = useCrearReservacion();
   const { usuarioId, setUsuarioId } = useUsuarioIdTemporal();
 
@@ -114,14 +116,7 @@ export function ReservacionFormModal({ open, onOpenChange }: ReservacionFormModa
           toast({ title: "Reservación creada", variant: "success" });
           onOpenChange(false);
         },
-        onError: (error: any) => {
-          const detail = error?.response?.data?.detail;
-          toast({
-            title: "No se pudo crear la reservación",
-            description: typeof detail === "string" ? detail : "Intenta de nuevo.",
-            variant: "error",
-          });
-        },
+        onError: (error) => mostrarError(error, "No se pudo crear la reservación"),
       }
     );
   };

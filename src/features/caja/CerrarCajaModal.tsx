@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useToast } from "@/components/ui/toast-provider";
+import { useErrorToast } from "@/hooks/useErrorToast";
 import { formatearMoneda } from "@/lib/format";
 import type { CajaSesion } from "@/types/caja";
 import { useCerrarCaja } from "./useCaja";
@@ -45,6 +46,7 @@ interface CerrarCajaModalProps {
  */
 export function CerrarCajaModal({ open, onOpenChange, sesion }: CerrarCajaModalProps) {
   const { toast } = useToast();
+  const mostrarError = useErrorToast();
   const cerrar = useCerrarCaja();
   const [montoConfirmar, setMontoConfirmar] = React.useState<string | null>(null);
 
@@ -79,13 +81,8 @@ export function CerrarCajaModal({ open, onOpenChange, sesion }: CerrarCajaModalP
           setMontoConfirmar(null);
           onOpenChange(false);
         },
-        onError: (error: any) => {
-          const detail = error?.response?.data?.detail;
-          toast({
-            title: "No se pudo cerrar la caja",
-            description: typeof detail === "string" ? detail : "Intenta de nuevo.",
-            variant: "error",
-          });
+        onError: (error) => {
+          mostrarError(error, "No se pudo cerrar la caja");
           setMontoConfirmar(null);
         },
       }

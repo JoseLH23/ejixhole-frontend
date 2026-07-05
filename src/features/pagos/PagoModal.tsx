@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/toast-provider";
+import { useErrorToast } from "@/hooks/useErrorToast";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { formatearMoneda } from "@/lib/format";
@@ -74,6 +75,7 @@ interface PagoModalProps {
 
 export function PagoModal({ open, onOpenChange, reservacionId, reservacionContexto }: PagoModalProps) {
   const { toast } = useToast();
+  const mostrarError = useErrorToast();
   const { usuarioId, setUsuarioId } = useUsuarioIdTemporal();
   const historial = usePagosDeReservacion(open ? reservacionId : null);
   const registrar = useRegistrarPago();
@@ -127,14 +129,7 @@ export function PagoModal({ open, onOpenChange, reservacionId, reservacionContex
             usuario_id: values.usuario_id,
           });
         },
-        onError: (error: any) => {
-          const detail = error?.response?.data?.detail;
-          toast({
-            title: "No se pudo registrar el pago",
-            description: typeof detail === "string" ? detail : "Intenta de nuevo.",
-            variant: "error",
-          });
-        },
+        onError: (error) => mostrarError(error, "No se pudo registrar el pago"),
       }
     );
   };

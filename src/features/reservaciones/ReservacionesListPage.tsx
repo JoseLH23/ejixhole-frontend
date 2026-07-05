@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { useToast } from "@/components/ui/toast-provider";
+import { useErrorToast } from "@/hooks/useErrorToast";
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatearMoneda } from "@/lib/format";
 import { useClientes } from "@/features/clientes/useClientes";
@@ -46,6 +47,7 @@ function accionesDisponibles(estado: EstadoReservacion) {
 
 export function ReservacionesListPage() {
   const { toast } = useToast();
+  const mostrarError = useErrorToast();
 
   const [filtroEstado, setFiltroEstado] = React.useState<string>(FILTRO_TODOS);
   const [filtroServicio, setFiltroServicio] = React.useState<string>(FILTRO_TODOS);
@@ -121,13 +123,8 @@ export function ReservacionesListPage() {
           toast({ title: `Reservación actualizada a "${nuevoEstado}"`, variant: "success" });
           setTransicionPendiente(null);
         },
-        onError: (error: any) => {
-          const detail = error?.response?.data?.detail;
-          toast({
-            title: "No se pudo cambiar el estado",
-            description: typeof detail === "string" ? detail : "Intenta de nuevo.",
-            variant: "error",
-          });
+        onError: (error) => {
+          mostrarError(error, "No se pudo cambiar el estado");
           setTransicionPendiente(null);
         },
       }

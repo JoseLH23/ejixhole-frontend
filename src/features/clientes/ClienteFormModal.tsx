@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast-provider";
+import { useErrorToast } from "@/hooks/useErrorToast";
 import { useCrearCliente, useActualizarCliente } from "./useClientes";
 import type { Cliente } from "@/types/cliente";
 
@@ -50,6 +51,7 @@ interface ClienteFormModalProps {
 
 export function ClienteFormModal({ open, onOpenChange, clienteEditar }: ClienteFormModalProps) {
   const { toast } = useToast();
+  const mostrarError = useErrorToast();
   const crear = useCrearCliente();
   const actualizar = useActualizarCliente();
   const esEdicion = clienteEditar !== null;
@@ -90,14 +92,7 @@ export function ClienteFormModal({ open, onOpenChange, clienteEditar }: ClienteF
             toast({ title: "Cliente actualizado", variant: "success" });
             onOpenChange(false);
           },
-          onError: (error: any) => {
-            const detail = error?.response?.data?.detail;
-            toast({
-              title: "No se pudo actualizar",
-              description: typeof detail === "string" ? detail : "Intenta de nuevo.",
-              variant: "error",
-            });
-          },
+          onError: (error) => mostrarError(error, "No se pudo actualizar"),
         }
       );
       return;
@@ -117,13 +112,7 @@ export function ClienteFormModal({ open, onOpenChange, clienteEditar }: ClienteF
         }
         onOpenChange(false);
       },
-      onError: () => {
-        toast({
-          title: "No se pudo crear el cliente",
-          description: "Intenta de nuevo.",
-          variant: "error",
-        });
-      },
+      onError: (error) => mostrarError(error, "No se pudo crear el cliente"),
     });
   };
 

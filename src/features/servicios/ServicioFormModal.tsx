@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast-provider";
+import { useErrorToast } from "@/hooks/useErrorToast";
 import { useCrearServicio, useActualizarServicio } from "./useServicios";
 import type { Servicio } from "@/types/servicio";
 
@@ -62,6 +63,7 @@ interface ServicioFormModalProps {
 
 export function ServicioFormModal({ open, onOpenChange, servicioEditar }: ServicioFormModalProps) {
   const { toast } = useToast();
+  const mostrarError = useErrorToast();
   const crear = useCrearServicio();
   const actualizar = useActualizarServicio();
   const esEdicion = servicioEditar !== null;
@@ -89,15 +91,6 @@ export function ServicioFormModal({ open, onOpenChange, servicioEditar }: Servic
     }
   }, [open, servicioEditar, reset]);
 
-  const mostrarErrorBackend = (error: any, tituloDefault: string) => {
-    const detail = error?.response?.data?.detail;
-    toast({
-      title: tituloDefault,
-      description: typeof detail === "string" ? detail : "Intenta de nuevo.",
-      variant: "error",
-    });
-  };
-
   const onSubmit = (values: ServicioFormValues) => {
     const datos = limpiar(values);
 
@@ -109,7 +102,7 @@ export function ServicioFormModal({ open, onOpenChange, servicioEditar }: Servic
             toast({ title: "Servicio actualizado", variant: "success" });
             onOpenChange(false);
           },
-          onError: (error) => mostrarErrorBackend(error, "No se pudo actualizar"),
+          onError: (error) => mostrarError(error, "No se pudo actualizar"),
         }
       );
       return;
@@ -120,7 +113,7 @@ export function ServicioFormModal({ open, onOpenChange, servicioEditar }: Servic
         toast({ title: "Servicio creado", variant: "success" });
         onOpenChange(false);
       },
-      onError: (error) => mostrarErrorBackend(error, "No se pudo crear el servicio"),
+      onError: (error) => mostrarError(error, "No se pudo crear el servicio"),
     });
   };
 

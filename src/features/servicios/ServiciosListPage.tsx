@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { useToast } from "@/components/ui/toast-provider";
+import { useErrorToast } from "@/hooks/useErrorToast";
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatearMoneda } from "@/lib/format";
 import { useServicios, useDesactivarServicio } from "./useServicios";
@@ -34,6 +35,7 @@ export function ServiciosListPage() {
   const { data: servicios, isLoading, isError, error, refetch, isFetching } = useServicios();
   const desactivar = useDesactivarServicio();
   const { toast } = useToast();
+  const mostrarError = useErrorToast();
 
   const [busqueda, setBusqueda] = React.useState("");
   const busquedaDebounced = useDebounce(busqueda);
@@ -64,13 +66,8 @@ export function ServiciosListPage() {
         toast({ title: "Servicio desactivado", variant: "success" });
         setServicioDesactivar(null);
       },
-      onError: (error: any) => {
-        const detail = error?.response?.data?.detail;
-        toast({
-          title: "No se pudo desactivar",
-          description: typeof detail === "string" ? detail : "Intenta de nuevo.",
-          variant: "error",
-        });
+      onError: (error) => {
+        mostrarError(error, "No se pudo desactivar");
         setServicioDesactivar(null);
       },
     });

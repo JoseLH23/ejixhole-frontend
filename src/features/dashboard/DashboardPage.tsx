@@ -1,9 +1,10 @@
-import { AlertTriangle, Inbox } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Inbox } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { useDashboardResumen } from "./useDashboard";
 import { KpiCard } from "./KpiCard";
 import { DashboardSkeleton } from "./DashboardSkeleton";
@@ -37,27 +38,20 @@ export function DashboardPage() {
       {isLoading && <DashboardSkeleton />}
 
       {isError && !isLoading && (
-        <div className="flex h-[50vh] flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-center">
-          <AlertTriangle className="h-10 w-10 text-destructive" />
-          <h2 className="text-lg font-semibold">No se pudo cargar el Dashboard</h2>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            {(error as any)?.response?.data?.detail ??
-              "No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo."}
-          </p>
-          <Button onClick={() => refetch()} disabled={isFetching}>
-            {isFetching ? "Reintentando..." : "Reintentar"}
-          </Button>
-        </div>
+        <ErrorState
+          titulo="No se pudo cargar el Dashboard"
+          error={error}
+          onRetry={() => refetch()}
+          retrying={isFetching}
+        />
       )}
 
       {!isLoading && !isError && data && data.tarjetas.length === 0 && (
-        <div className="flex h-[50vh] flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-center">
-          <Inbox className="h-10 w-10 text-muted-foreground" />
-          <h2 className="text-lg font-semibold">Todavía no hay datos</h2>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            Cuando empieces a registrar clientes, reservaciones y pagos, el resumen aparecerá aquí.
-          </p>
-        </div>
+        <EmptyState
+          titulo="Todavía no hay datos"
+          icon={Inbox}
+          descripcion="Cuando empieces a registrar clientes, reservaciones y pagos, el resumen aparecerá aquí."
+        />
       )}
 
       {!isLoading && !isError && data && data.tarjetas.length > 0 && (
