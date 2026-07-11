@@ -6,8 +6,8 @@
  * (ej. "300.00") y los campos `int`/`float` (conteos, porcentajes)
  * como número JSON — el mismo comportamiento ya documentado en
  * docs/modulos/reportes-entrega-1.md del backend. Por eso el tipo es
- * `string | number`, y KpiCard decide cómo formatear cada uno (ver
- * KpiCard.tsx).
+ * `string | number`, y KpiRowCard/ResumenMensualCard deciden cómo
+ * formatear cada uno (ver dashboard/formatters.ts).
  */
 
 export type Tendencia = "up" | "down" | "neutral";

@@ -53,7 +53,7 @@ export function ClientesNuevosReportPage() {
             <EmptyState titulo="Sin clientes nuevos en este rango" />
           ) : (
             <SerieLineChart
-              data={data.serie}
+              data={data.serie.map((item) => ({ periodo: item.periodo, num_clientes: item.num_clientes }))}
               xKey="periodo"
               lines={[{ dataKey: "num_clientes", name: "Clientes nuevos", color: CHART_COLORS.wood }]}
             />

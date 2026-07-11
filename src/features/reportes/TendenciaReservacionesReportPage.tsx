@@ -76,7 +76,7 @@ export function TendenciaReservacionesReportPage() {
             <EmptyState titulo="Sin reservaciones en este rango" />
           ) : (
             <SerieLineChart
-              data={data.serie}
+              data={data.serie.map((item) => ({ periodo: item.periodo, num_reservaciones: item.num_reservaciones }))}
               xKey="periodo"
               lines={[{ dataKey: "num_reservaciones", name: "Reservaciones", color: CHART_COLORS.primary }]}
             />

@@ -8,6 +8,7 @@ completa aprobada), `docs/entrega-1.md` (infraestructura), `docs/entrega-2.md`
 `docs/entrega-3f.md` (Reportes), `docs/entrega-4-pulido.md` (pulido UX)
 `docs/entrega-5-premium-ui.md` (branding e identidad visual premium)
 y `docs/entrega-6-rediseno-radical.md` (rediseño estructural completo).
+Ver también `docs/entrega-7-dashboard.md` (Dashboard reconstruido desde cero, con fotografía real del parque) y `docs/entrega-8-dashboard-operativo.md` (Dashboard operativo siguiendo referencia visual exacta). Ver `docs/entrega-9-correcciones-build-real.md` para las correcciones del primer `npm run build` real + Sidebar/Topbar finales.
 
 ## Requisitos
 

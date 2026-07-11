@@ -1,30 +1,10 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useIsFetching } from "@tanstack/react-query";
-import { LogOut, ChevronDown, Menu, Search, Circle, ChevronRight } from "lucide-react";
+import { Menu, Search, Circle, ChevronRight } from "lucide-react";
 
-import { useAuth } from "@/context/AuthContext";
 import { useEstadoSistema } from "@/hooks/useEstadoSistema";
 import { encontrarSeccionActual } from "@/router/breadcrumb";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-
-const ROL_LABELS: Record<string, string> = {
-  admin: "Administrador",
-  operador: "Operador",
-  cajero: "Cajero",
-};
-
-function inicialesDe(email: string): string {
-  return email.slice(0, 2).toUpperCase();
-}
 
 interface TopbarProps {
   onAbrirMenu: () => void;
@@ -32,25 +12,19 @@ interface TopbarProps {
 }
 
 /**
- * Rediseño total (Entrega 6): chrome mínimo al estilo Linear — se
- * quitó el saludo/hora/búsqueda embebida que hacían sentir esto como
- * "otro panel de admin genérico". Lo que queda: contexto de sección
- * (breadcrumb liviano), un disparador de la paleta de comandos, el
- * estado real del sistema, y el menú de usuario.
+ * Chrome mínimo estilo Linear. El bloque de usuario/avatar/logout que
+ * vivía aquí se movió al final del Sidebar (a pedido explícito, tras
+ * la Entrega 8) — se quitó por completo de este archivo para que no
+ * exista en dos lugares a la vez. Lo que queda: menú mobile, contexto
+ * de sección, disparador de ⌘K, estado real del sistema, y la barra
+ * de carga global.
  */
 export function Topbar({ onAbrirMenu, onAbrirPaleta }: TopbarProps) {
-  const { usuario, logout } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const { enLinea } = useEstadoSistema();
   const seccion = encontrarSeccionActual(location.pathname);
 
   const numeroDeFetchesActivos = useIsFetching();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login", { replace: true });
-  };
 
   return (
     <header className="relative flex h-14 items-center gap-3 border-b border-border bg-card/80 px-4 backdrop-blur-sm sm:px-6">
@@ -91,34 +65,10 @@ export function Topbar({ onAbrirMenu, onAbrirPaleta }: TopbarProps) {
       </button>
 
       {/* Estado del sistema — real, contra GET /status */}
-      <div className="hidden items-center gap-1.5 text-xs text-muted-foreground lg:flex">
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Circle className={cn("h-2 w-2 fill-current", enLinea ? "text-success" : "text-destructive")} />
-        {enLinea ? "En línea" : "Sin conexión"}
+        <span className="hidden lg:inline">{enLinea ? "En línea" : "Sin conexión"}</span>
       </div>
-
-      {usuario && (
-        <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-2 rounded-md px-1.5 py-1 outline-none transition-colors hover:bg-accent">
-            <Avatar className="h-7 w-7 ring-2 ring-primary/10">
-              <AvatarFallback className="text-xs">{inicialesDe(usuario.email)}</AvatarFallback>
-            </Avatar>
-            <ChevronDown className="hidden h-3.5 w-3.5 text-muted-foreground sm:block" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>
-              <p className="font-normal">{usuario.email}</p>
-              <p className="text-xs font-normal text-muted-foreground">
-                {ROL_LABELS[usuario.rol] ?? usuario.rol}
-              </p>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-              <LogOut className="mr-2 h-4 w-4" />
-              Cerrar sesión
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
 
       <div
         className={cn(

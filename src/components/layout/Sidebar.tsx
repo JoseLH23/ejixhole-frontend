@@ -1,10 +1,18 @@
-import * as React from "react";
-import { NavLink } from "react-router-dom";
-import { Waves, X, Command } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { Waves, X, Command, ChevronDown, LogOut } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
 import { NAV_ITEMS, type NavItem } from "@/router/navigation";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface SidebarProps {
   abiertoEnMobile: boolean;
@@ -14,19 +22,40 @@ interface SidebarProps {
 
 const ORDEN_GRUPOS: NavItem["grupo"][] = ["Principal", "Operación", "Análisis", "Administración"];
 
+const ROL_LABELS: Record<string, string> = {
+  admin: "Administrador",
+  operador: "Operador",
+  cajero: "Cajero",
+};
+
+function inicialesDe(email: string): string {
+  return email.slice(0, 2).toUpperCase();
+}
+
 /**
- * Rediseño total (Entrega 6): navegación agrupada por sección
- * (Principal / Operación / Análisis / Administración) con etiquetas
- * discretas en mayúsculas — el lenguaje visual de Linear/Notion, en
- * vez de una lista plana de 8 links iguales.
+ * Navegación agrupada (Entrega 6) + tarjeta de foto/usuario al final
+ * (pedido explícito tras la Entrega 8, siguiendo la referencia
+ * visual). El bloque de usuario/logout se movió aquí desde el Topbar
+ * a propósito — antes vivía en los dos lugares habría sido
+ * duplicado; ahora solo existe aquí.
+ *
+ * Nota: la tarjeta de foto es puramente decorativa (misma fotografía
+ * real de `public/park/`, no representa ningún dato) — mismo criterio
+ * de honestidad que el resto del Dashboard.
  */
 export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarProps) {
-  const { usuario } = useAuth();
+  const { usuario, logout } = useAuth();
+  const navigate = useNavigate();
 
   const gruposVisibles = ORDEN_GRUPOS.map((grupo) => ({
     grupo,
     items: NAV_ITEMS.filter((item) => item.grupo === grupo && usuario && item.roles.includes(usuario.rol)),
   })).filter((g) => g.items.length > 0);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <>
@@ -40,7 +69,7 @@ export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarPro
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex h-screen w-64 flex-col border-r border-border bg-card transition-transform duration-200 ease-out md:static md:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex h-screen w-56 flex-col border-r border-border bg-card transition-transform duration-200 ease-out md:static md:translate-x-0",
           abiertoEnMobile ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -107,6 +136,54 @@ export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarPro
             </div>
           ))}
         </nav>
+
+        {/* Tarjeta decorativa — fotografía real, sin ningún dato detrás */}
+        <div className="px-3 pb-3">
+          <div className="relative h-28 overflow-hidden rounded-xl">
+            <img
+              src="/park/canoa.jpg"
+              alt="Recorrido en canoa en EjiXhole"
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 to-black/10" />
+            <p className="absolute bottom-2 left-3 right-3 font-display text-xs font-medium leading-snug text-white">
+              Naturaleza que inspira, experiencias que permanecen.
+            </p>
+          </div>
+        </div>
+
+        {/* Usuario + rol + logout — único lugar donde aparece (antes vivía en el Topbar) */}
+        {usuario && (
+          <div className="border-t border-border p-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex w-full items-center gap-2 rounded-lg p-2 text-left outline-none transition-colors hover:bg-accent">
+                <Avatar className="h-8 w-8 ring-2 ring-primary/10">
+                  <AvatarFallback className="text-xs">{inicialesDe(usuario.email)}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{usuario.email}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {ROL_LABELS[usuario.rol] ?? usuario.rol}
+                  </p>
+                </div>
+                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <p className="font-normal">{usuario.email}</p>
+                  <p className="text-xs font-normal text-muted-foreground">
+                    {ROL_LABELS[usuario.rol] ?? usuario.rol}
+                  </p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Cerrar sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </aside>
     </>
   );

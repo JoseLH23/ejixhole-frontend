@@ -1,87 +1,47 @@
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { Waves } from "lucide-react";
-
-import { ParkIllustration } from "@/components/brand/ParkIllustration";
-import { formatearValor, inferirFormato } from "./formatters";
-import type { Tarjeta } from "@/types/dashboard";
+import { Sun } from "lucide-react";
 
 interface DashboardHeroProps {
   nombre: string;
-  fecha: string;
-  tarjetas: Tarjeta[];
 }
 
 /**
- * Panel hero del Dashboard — reemplaza el encabezado de texto plano
- * que existía antes por el mismo lenguaje visual del Login
- * (gradient-mesh + ilustración de marca), con la métrica más
- * importante destacada en grande.
+ * Hero del Dashboard (Entrega 8) — replica la referencia: foto real de
+ * fondo, saludo grande, subtítulo, y una tarjeta de clima.
  *
- * Identifica "Ingresos del mes" por título exacto para destacarla —
- * mismo acoplamiento ya documentado y aceptado en KpiCard.tsx
- * (ICONO_POR_TITULO) y formatters.ts (TITULOS_PORCENTAJE). Si el
- * backend algún día renombra la tarjeta, esto simplemente no
- * encuentra nada que destacar y el hero se ve sin la cifra grande —
- * nunca revienta.
+ * La tarjeta de clima es DECORATIVA por instrucción explícita del
+ * cliente ("tarjeta pequeña de clima visual SOLO decorativa si no hay
+ * endpoint real") — el backend no tiene ningún dato meteorológico.
+ * Nunca se presenta como si viniera de una API real.
  */
-export function DashboardHero({ nombre, fecha, tarjetas }: DashboardHeroProps) {
-  const destacada = tarjetas.find((t) => t.titulo === "Ingresos del mes");
-  const chips = tarjetas.filter(
-    (t) => t.titulo === "Reservaciones activas" || t.titulo === "Clientes nuevos (mes)"
-  );
-
-  const fechaFormateada = (() => {
-    try {
-      return format(new Date(`${fecha}T00:00:00`), "EEEE d 'de' MMMM", { locale: es });
-    } catch {
-      return fecha;
-    }
-  })();
-
+export function DashboardHero({ nombre }: DashboardHeroProps) {
   return (
-    <div className="gradient-mesh-hero dot-grid relative overflow-hidden rounded-2xl p-6 text-primary-foreground sm:p-8">
-      <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium capitalize">
-            <Waves className="h-3 w-3" />
-            {fechaFormateada}
-          </p>
-          <h1 className="font-display text-3xl font-semibold sm:text-4xl">Hola, {nombre} 🌿</h1>
-          <p className="mt-1 text-sm text-primary-foreground/80">
-            Así va EjiXhole hoy — todo en un vistazo.
-          </p>
-        </div>
+    <div className="relative isolate overflow-hidden rounded-2xl">
+      <img
+        src="/park/pool-turquesa.jpg"
+        alt="Cascada y alberca de aguas turquesa en EjiXhole"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/10" />
 
-        {destacada && (
-          <div className="glass-panel animate-fade-in-up rounded-2xl px-6 py-4">
-            <p className="text-xs uppercase tracking-wider text-primary-foreground/70">
-              {destacada.titulo}
-            </p>
-            <p className="font-display text-4xl font-semibold tabular-nums">
-              {formatearValor(destacada.valor, inferirFormato(destacada.titulo, destacada.valor))}
+      <div className="relative z-10 flex min-h-[13rem] flex-col justify-end p-6 text-white sm:p-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="font-display text-3xl font-semibold sm:text-4xl">Hola, {nombre} 🌿</h1>
+            <p className="mt-1 text-sm text-white/85">
+              Todo listo para crear experiencias inolvidables en contacto con la naturaleza.
             </p>
           </div>
-        )}
-      </div>
 
-      {chips.length > 0 && (
-        <div className="relative z-10 mt-6 flex flex-wrap gap-3">
-          {chips.map((c) => (
-            <div
-              key={c.titulo}
-              className="glass-panel flex items-center gap-2 rounded-xl px-4 py-2 text-sm"
-            >
-              <span className="text-primary-foreground/70">{c.titulo}:</span>
-              <span className="font-semibold tabular-nums">
-                {formatearValor(c.valor, inferirFormato(c.titulo, c.valor))}
-              </span>
+          {/* Decorativo — sin endpoint de clima real, ver comentario arriba */}
+          <div className="flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 px-4 py-3 backdrop-blur-md">
+            <Sun className="h-8 w-8 text-warning" />
+            <div>
+              <p className="text-lg font-semibold leading-none">24°C</p>
+              <p className="text-xs text-white/75">Clima actual (referencial)</p>
             </div>
-          ))}
+          </div>
         </div>
-      )}
-
-      <ParkIllustration className="pointer-events-none absolute -bottom-6 right-0 h-40 w-72 opacity-60 sm:h-48 sm:w-96" />
+      </div>
     </div>
   );
 }
