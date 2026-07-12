@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Plus, Wallet, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { Plus, Wallet, ArrowUpCircle, ArrowDownCircle, Landmark } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { formatearMoneda } from "@/lib/format";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { useUsuarioIdTemporal } from "@/hooks/useUsuarioIdTemporal";
 import { useCajaSesionActual, useCajaSesiones, useCajaMovimientos } from "./useCaja";
 import { AbrirCajaModal } from "./AbrirCajaModal";
@@ -101,11 +102,13 @@ export function CajaPage() {
   ];
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-3xl font-semibold">Caja</h1>
-        <p className="text-sm text-muted-foreground">Apertura, movimientos y cierre de caja.</p>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        titulo="Caja"
+        descripcion="Apertura, movimientos y cierre de caja."
+        icon={Landmark}
+        acento="primary"
+      />
 
       {/* Identificación temporal — ver docs/entrega-3e.md */}
       {!usuarioId && (

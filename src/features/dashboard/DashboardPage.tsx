@@ -76,7 +76,7 @@ export function DashboardPage() {
   })();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Franja superior: "Parque Abierto" es decorativo — el backend no
           tiene un concepto de "parque abierto/cerrado" en tiempo real,
           solo si el servidor responde (eso ya se muestra abajo, real). */}
@@ -92,7 +92,7 @@ export function DashboardPage() {
 
       {/* Fila de KPIs — 4 tarjetas reales uniformes */}
       {kpisRow.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
           {kpisRow.map((tarjeta) => {
             const { icon, tinte } = obtenerIconoTarjeta(tarjeta.titulo);
             return <KpiRowCard key={tarjeta.titulo} tarjeta={tarjeta} icon={icon} tinte={tinte} />;
@@ -104,10 +104,10 @@ export function DashboardPage() {
           Actividad/Próximas dependen de Reportes (admin-only) — para
           operador/cajero se omiten con honestidad, no se rellenan con
           datos falsos. */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="min-w-0 space-y-6 lg:col-span-4">{esAdmin && <ActividadReciente />}</div>
-        <div className="min-w-0 space-y-6 lg:col-span-5">{esAdmin && <ProximasReservacionesCards />}</div>
-        <div className="min-w-0 space-y-6 lg:col-span-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <div className="min-w-0 space-y-5 lg:col-span-4">{esAdmin && <ActividadReciente />}</div>
+        <div className="min-w-0 space-y-5 lg:col-span-5">{esAdmin && <ProximasReservacionesCards />}</div>
+        <div className="min-w-0 space-y-5 lg:col-span-3">
           <DashboardSidePanel ultimaActualizacion={dataUpdatedAt} />
           <ResumenMensualCard tarjeta={ingresosDelMes} />
           {esAdmin && <ServiciosMasVendidosPanel />}
@@ -116,7 +116,7 @@ export function DashboardPage() {
 
       {/* Sección inferior — también depende de Reportes, admin-only. */}
       {esAdmin && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <div className="min-w-0">
             <ReservacionesPorEstadoChart />
           </div>

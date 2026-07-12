@@ -23,21 +23,21 @@ export function DashboardHero({ nombre }: DashboardHeroProps) {
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/10" />
 
-      <div className="relative z-10 flex min-h-[13rem] flex-col justify-end p-6 text-white sm:p-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="relative z-10 flex min-h-[8.5rem] flex-col justify-end p-5 text-white sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-display text-3xl font-semibold sm:text-4xl">Hola, {nombre} 🌿</h1>
-            <p className="mt-1 text-sm text-white/85">
+            <h1 className="font-display text-2xl font-semibold sm:text-3xl">Hola, {nombre} 🌿</h1>
+            <p className="mt-0.5 text-sm text-white/85">
               Todo listo para crear experiencias inolvidables en contacto con la naturaleza.
             </p>
           </div>
 
           {/* Decorativo — sin endpoint de clima real, ver comentario arriba */}
-          <div className="flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 px-4 py-3 backdrop-blur-md">
-            <Sun className="h-8 w-8 text-warning" />
+          <div className="flex items-center gap-2.5 rounded-xl border border-white/20 bg-white/10 px-3.5 py-2 backdrop-blur-md">
+            <Sun className="h-6 w-6 text-warning" />
             <div>
-              <p className="text-lg font-semibold leading-none">24°C</p>
-              <p className="text-xs text-white/75">Clima actual (referencial)</p>
+              <p className="text-base font-semibold leading-none">24°C</p>
+              <p className="text-[11px] text-white/75">Clima actual (referencial)</p>
             </div>
           </div>
         </div>

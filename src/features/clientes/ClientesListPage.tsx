@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Plus, Pencil, UserX, Search } from "lucide-react";
+import { Plus, Pencil, UserX, Search, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { FilterBar } from "@/components/shared/FilterBar";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { useToast } from "@/components/ui/toast-provider";
 import { useErrorToast } from "@/hooks/useErrorToast";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -88,17 +89,21 @@ export function ClientesListPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-display text-3xl font-semibold">Clientes</h1>
-          <p className="text-sm text-muted-foreground">Gestiona los clientes registrados.</p>
-        </div>
-        <Button onClick={abrirCrear}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nuevo cliente
-        </Button>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        titulo="Clientes"
+        descripcion="Gestiona los clientes registrados."
+        icon={Users}
+        acento="primary"
+        fotoUrl="https://ejixhole-reservas.vercel.app/gallery/visitantes-1.jpg"
+        fotoAlt="Visitantes de EjiXhole"
+        acciones={
+          <Button onClick={abrirCrear}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo cliente
+          </Button>
+        }
+      />
 
       <FilterBar>
         <div className="relative max-w-sm flex-1">

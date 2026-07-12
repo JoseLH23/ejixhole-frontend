@@ -2,6 +2,13 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Rediseño de densidad (fase "pulido visual"): filas más bajas, menos
+ * padding, encabezado pegajoso (sticky) para tablas largas dentro de
+ * un contenedor con `max-height` — usado por DataTable, que ahora
+ * pagina, así que el sticky header rara vez se ve con más de 12 filas,
+ * pero se deja listo para cualquier tabla que crezca.
+ */
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
     <div className="relative w-full overflow-auto rounded-xl border border-border shadow-premium">
@@ -15,7 +22,11 @@ const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("bg-muted/60 [&_tr]:border-b", className)} {...props} />
+  <thead
+    ref={ref}
+    className={cn("sticky top-0 z-10 bg-muted/95 backdrop-blur-sm [&_tr]:border-b", className)}
+    {...props}
+  />
 ));
 TableHeader.displayName = "TableHeader";
 
@@ -53,7 +64,8 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-12 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+      // Compactado: h-12→h-9, tracking un poco menor para que quepa más.
+      "h-9 px-3 text-left align-middle text-[11px] font-semibold uppercase tracking-wide text-muted-foreground",
       className
     )}
     {...props}
@@ -65,7 +77,8 @@ const TableCell = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement>
 >(({ className, ...props }, ref) => (
-  <td ref={ref} className={cn("px-4 py-3.5 align-middle", className)} {...props} />
+  // Compactado: py-3.5→py-2, px-4→px-3 — menos altura por fila, misma legibilidad.
+  <td ref={ref} className={cn("px-3 py-2 align-middle text-sm", className)} {...props} />
 ));
 TableCell.displayName = "TableCell";
 

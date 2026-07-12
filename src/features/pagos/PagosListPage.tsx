@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Wallet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { FilterBar } from "@/components/shared/FilterBar";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatearMoneda } from "@/lib/format";
 import { useReservaciones } from "@/features/reservaciones/useReservaciones";
@@ -81,17 +82,19 @@ export function PagosListPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-display text-3xl font-semibold">Pagos</h1>
-          <p className="text-sm text-muted-foreground">Bitácora de todos los pagos registrados.</p>
-        </div>
-        <Button onClick={() => setPasoSeleccion(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Registrar pago
-        </Button>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        titulo="Pagos"
+        descripcion="Bitácora de todos los pagos registrados."
+        icon={Wallet}
+        acento="wood"
+        acciones={
+          <Button onClick={() => setPasoSeleccion(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Registrar pago
+          </Button>
+        }
+      />
 
       <FilterBar>
         <div className="relative w-full max-w-xs">

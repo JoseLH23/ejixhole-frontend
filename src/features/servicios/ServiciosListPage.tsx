@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Plus, Pencil, Ban, Search } from "lucide-react";
+import { Plus, Pencil, Ban, Search, Package } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { FilterBar } from "@/components/shared/FilterBar";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { useToast } from "@/components/ui/toast-provider";
 import { useErrorToast } from "@/hooks/useErrorToast";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -105,19 +106,21 @@ export function ServiciosListPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-display text-3xl font-semibold">Servicios</h1>
-          <p className="text-sm text-muted-foreground">
-            Catálogo de experiencias disponibles para reservar.
-          </p>
-        </div>
-        <Button onClick={abrirCrear}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nuevo servicio
-        </Button>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        titulo="Servicios"
+        descripcion="Catálogo de experiencias disponibles para reservar."
+        icon={Package}
+        acento="wood"
+        fotoUrl="https://ejixhole-reservas.vercel.app/gallery/actividad-kayak.jpg"
+        fotoAlt="Actividad de kayak en EjiXhole"
+        acciones={
+          <Button onClick={abrirCrear}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo servicio
+          </Button>
+        }
+      />
 
       <FilterBar>
         <div className="relative max-w-sm flex-1">

@@ -9,12 +9,12 @@ import {
   Globe,
   Building2,
   Loader2,
+  CalendarCheck,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge, EstadoBadge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
@@ -22,6 +22,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { FilterBar } from "@/components/shared/FilterBar";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { useToast } from "@/components/ui/toast-provider";
 import { useErrorToast } from "@/hooks/useErrorToast";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -279,8 +280,8 @@ export function ReservacionesListPage() {
   };
 
   const columnas: DataTableColumn<Reservacion>[] = [
-    { header: "Folio", cell: (r) => <span className="font-mono text-xs">#{r.id}</span> },
     { header: "Cliente", cell: (r) => nombreCliente(r.cliente_id) },
+    { header: "Folio", cell: (r) => <span className="font-mono text-xs">#{r.id}</span> },
     { header: "Tipo", cell: (r) => TIPO_LABELS[r.tipo_reservacion] ?? r.tipo_reservacion },
     { header: "Fechas", cell: (r) => <span className="whitespace-nowrap">{formatearRangoFechas(r)}</span> },
     { header: "Personas", cell: (r) => r.num_personas },
@@ -298,17 +299,21 @@ export function ReservacionesListPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-display text-3xl font-semibold">Reservaciones</h1>
-          <p className="text-sm text-muted-foreground">Gestiona las reservaciones del parque.</p>
-        </div>
-        <Button onClick={() => setModalAbierto(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nueva reservación
-        </Button>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        titulo="Reservaciones"
+        descripcion="Gestiona las reservaciones del parque."
+        icon={CalendarCheck}
+        acento="secondary"
+        fotoUrl="https://ejixhole-reservas.vercel.app/gallery/hero-principal.jpg"
+        fotoAlt="Cascada de EjiXhole"
+        acciones={
+          <Button onClick={() => setModalAbierto(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nueva reservación
+          </Button>
+        }
+      />
 
       <FilterBar>
         <div className="relative w-full max-w-xs">
@@ -389,91 +394,12 @@ export function ReservacionesListPage() {
       )}
 
       {!isLoading && !isError && reservacionesFiltradas.length > 0 && (
-        <>
-          {/* Escritorio/tablet ancho: tabla completa con scroll horizontal si hace falta. */}
-          <div className="hidden md:block">
-            <DataTable
-              columns={columnas}
-              data={reservacionesFiltradas}
-              getRowId={(r) => r.id}
-              renderAcciones={renderAccionesFila}
-            />
-          </div>
-
-          {/* Móvil: tarjetas apiladas, sin tabla — nada de scroll horizontal ni zoom. */}
-          <div className="grid gap-3 md:hidden">
-            {reservacionesFiltradas.map((r) => (
-              <Card key={r.id} className="p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-mono text-xs text-muted-foreground">#{r.id}</p>
-                    <p className="font-semibold">{nombreCliente(r.cliente_id)}</p>
-                  </div>
-                  <OrigenBadge origen={r.origen} />
-                </div>
-
-                <div className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Tipo</p>
-                    <p>{TIPO_LABELS[r.tipo_reservacion] ?? r.tipo_reservacion}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Fechas</p>
-                    <p>{formatearRangoFechas(r)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Personas</p>
-                    <p>{r.num_personas}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Total</p>
-                    <p className="font-mono">
-                      {formatearMoneda(r.saldo_pendiente)}
-                      <span className="text-xs text-muted-foreground"> / {formatearMoneda(r.total)}</span>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-3">
-                  <EstadoBadge estado={r.estado} />
-                </div>
-
-                <div className="mt-4 flex flex-col gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => setPagoReservacionId(r.id)}
-                    disabled={cambiarEstado.isPending}
-                  >
-                    <Wallet className="mr-1 h-4 w-4" />
-                    Pagos
-                  </Button>
-                  {accionesDisponibles(r).map((accion) => {
-                    const procesandoEstaFila = idEnProceso === r.id;
-                    return (
-                      <Button
-                        key={accion.label}
-                        variant={accion.destructiva ? "destructive" : "default"}
-                        size="sm"
-                        className="w-full"
-                        onClick={() => solicitarTransicion(r, accion.nuevoEstado, accion.label)}
-                        disabled={cambiarEstado.isPending}
-                      >
-                        {procesandoEstaFila ? (
-                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                        ) : (
-                          <accion.Icon className="mr-1 h-4 w-4" />
-                        )}
-                        {procesandoEstaFila ? "Procesando..." : accion.label}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </Card>
-            ))}
-          </div>
-        </>
+        <DataTable
+          columns={columnas}
+          data={reservacionesFiltradas}
+          getRowId={(r) => r.id}
+          renderAcciones={renderAccionesFila}
+        />
       )}
 
       <ReservacionFormModal open={modalAbierto} onOpenChange={setModalAbierto} />

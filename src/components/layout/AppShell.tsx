@@ -25,8 +25,8 @@ export function AppShell() {
       />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar onAbrirMenu={() => setMenuAbierto(true)} onAbrirPaleta={() => setPaletaAbierta(true)} />
-        <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6">
-          <div key={location.pathname} className="animate-fade-in-up">
+        <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto p-3.5 sm:p-5">
+          <div key={location.pathname} className="mx-auto max-w-[1600px] animate-fade-in-up">
             <Outlet />
           </div>
         </main>

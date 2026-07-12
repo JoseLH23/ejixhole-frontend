@@ -27,7 +27,7 @@ export function Topbar({ onAbrirMenu, onAbrirPaleta }: TopbarProps) {
   const numeroDeFetchesActivos = useIsFetching();
 
   return (
-    <header className="relative flex h-14 items-center gap-3 border-b border-border bg-card/80 px-4 backdrop-blur-sm sm:px-6">
+    <header className="relative flex h-12 items-center gap-3 border-b border-border bg-card/80 px-4 backdrop-blur-sm sm:px-6">
       <button
         onClick={onAbrirMenu}
         className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent md:hidden"

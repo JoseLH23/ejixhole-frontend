@@ -69,7 +69,7 @@ export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarPro
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex h-screen w-56 flex-col border-r border-border bg-card transition-transform duration-200 ease-out md:static md:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex h-screen w-52 flex-col border-r border-border bg-card transition-transform duration-200 ease-out md:static md:translate-x-0",
           abiertoEnMobile ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -103,7 +103,7 @@ export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarPro
           </button>
         </div>
 
-        <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-3">
+        <nav className="flex-1 space-y-4 overflow-y-auto px-2.5 pb-2.5">
           {gruposVisibles.map(({ grupo, items }) => (
             <div key={grupo}>
               <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
@@ -120,7 +120,7 @@ export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarPro
                       onClick={onCerrar}
                       className={({ isActive }) =>
                         cn(
-                          "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
+                          "group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-all duration-150",
                           isActive
                             ? "bg-primary text-primary-foreground shadow-sm"
                             : "text-foreground/70 hover:bg-accent hover:text-accent-foreground"
@@ -139,15 +139,15 @@ export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarPro
 
         {/* Tarjeta decorativa — fotografía real, sin ningún dato detrás */}
         <div className="px-3 pb-3">
-          <div className="relative h-28 overflow-hidden rounded-xl">
+          <div className="relative h-20 overflow-hidden rounded-xl">
             <img
               src="/park/canoa.jpg"
               alt="Recorrido en canoa en EjiXhole"
               className="h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 to-black/10" />
-            <p className="absolute bottom-2 left-3 right-3 font-display text-xs font-medium leading-snug text-white">
-              Naturaleza que inspira, experiencias que permanecen.
+            <p className="absolute bottom-1.5 left-2.5 right-2.5 font-display text-[11px] font-medium leading-snug text-white">
+              Naturaleza que inspira.
             </p>
           </div>
         </div>
