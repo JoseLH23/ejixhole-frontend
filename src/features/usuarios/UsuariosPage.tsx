@@ -1,12 +1,18 @@
-import { UserCog } from "lucide-react";
+import * as React from "react";
+import { Plus, UserX, UserCog } from "lucide-react";
 
 import { PageHeader } from "@/components/shared/PageHeader";
+import { Button } from "@/components/ui/button";
 import { Badge, EstadoBadge } from "@/components/ui/badge";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
-import { useUsuarios } from "./useUsuarios";
+import { useToast } from "@/components/ui/toast-provider";
+import { useErrorToast } from "@/hooks/useErrorToast";
+import { useUsuarios, useDesactivarUsuario } from "./useUsuarios";
+import { UsuarioFormModal } from "./UsuarioFormModal";
 import type { Usuario } from "@/types/usuario";
 
 const ROL_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
@@ -26,21 +32,36 @@ function RolBadge({ rol }: { rol: string }) {
 }
 
 /**
- * Módulo Usuarios — listado real vía GET /usuarios (Fase 1, reutiliza
- * UsuarioOut/get_current_user ya existentes en el backend).
+ * Módulo Usuarios — listar (GET /usuarios), crear (POST /auth/usuarios,
+ * ya existía) y desactivar (DELETE /usuarios/{id}, protegido contra
+ * dejar el sistema sin ningún admin activo). Reutiliza get_current_user,
+ * UsuarioOut y el patrón de ConfirmDialog ya usado en Clientes/Servicios.
  *
- * Alcance real de esta entrega: SOLO listar. El backend todavía no
- * expone editar/desactivar/cambiar rol/reset de contraseña para
- * usuarios existentes — por instrucción explícita ("no inventes
- * endpoints"), esta pantalla no ofrece esas acciones todavía. Crear
- * usuario sí existe en el backend (POST /auth/usuarios), pero conectar
- * ese formulario aquí necesita primero un GET /roles para poblar el
- * selector de rol de forma real (hoy no existe) — se deja para la
- * siguiente entrega de este módulo, no se improvisa una lista de roles
- * hardcodeada que podría desincronizarse de la tabla `roles` real.
+ * Todavía no incluye: editar nombre/email/rol de un usuario existente,
+ * ni reset de contraseña — el backend no los expone aún.
  */
 export function UsuariosPage() {
   const { data: usuarios, isLoading, isError, error, refetch, isFetching } = useUsuarios({ limit: 100 });
+  const desactivar = useDesactivarUsuario();
+  const { toast } = useToast();
+  const mostrarError = useErrorToast();
+
+  const [modalAbierto, setModalAbierto] = React.useState(false);
+  const [usuarioDesactivar, setUsuarioDesactivar] = React.useState<Usuario | null>(null);
+
+  const confirmarDesactivar = () => {
+    if (!usuarioDesactivar) return;
+    desactivar.mutate(usuarioDesactivar.id, {
+      onSuccess: () => {
+        toast({ title: "Usuario desactivado", variant: "success" });
+        setUsuarioDesactivar(null);
+      },
+      onError: (error) => {
+        mostrarError(error, "No se pudo desactivar");
+        setUsuarioDesactivar(null);
+      },
+    });
+  };
 
   const columnas: DataTableColumn<Usuario>[] = [
     { header: "Nombre", cell: (u) => <span className="font-medium">{u.nombre}</span> },
@@ -56,6 +77,12 @@ export function UsuariosPage() {
         descripcion="Cuentas del sistema y sus roles."
         icon={UserCog}
         acento="wood"
+        acciones={
+          <Button onClick={() => setModalAbierto(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo usuario
+          </Button>
+        }
       />
 
       {isLoading && <TableSkeleton columnas={4} />}
@@ -69,8 +96,41 @@ export function UsuariosPage() {
       )}
 
       {!isLoading && !isError && usuarios && usuarios.length > 0 && (
-        <DataTable columns={columnas} data={usuarios} getRowId={(u) => u.id} />
+        <DataTable
+          columns={columnas}
+          data={usuarios}
+          getRowId={(u) => u.id}
+          renderAcciones={(u) => (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive"
+              disabled={!u.activo}
+              onClick={() => setUsuarioDesactivar(u)}
+            >
+              <UserX className="mr-1 h-4 w-4" />
+              Desactivar
+            </Button>
+          )}
+        />
       )}
+
+      <UsuarioFormModal open={modalAbierto} onOpenChange={setModalAbierto} />
+
+      <ConfirmDialog
+        open={usuarioDesactivar !== null}
+        onOpenChange={(open) => !open && setUsuarioDesactivar(null)}
+        titulo="¿Desactivar este usuario?"
+        descripcion={
+          usuarioDesactivar
+            ? `${usuarioDesactivar.nombre} ya no podrá iniciar sesión. Esto no se puede deshacer desde aquí.`
+            : ""
+        }
+        textoConfirmar="Desactivar"
+        variante="destructive"
+        cargando={desactivar.isPending}
+        onConfirmar={confirmarDesactivar}
+      />
     </div>
   );
 }
