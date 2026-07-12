@@ -6,13 +6,22 @@ export type EstadoReservacion = (typeof ESTADOS_RESERVACION)[number];
 export const ORIGENES_RESERVACION = ["recepcion", "recepcion_express", "portal", "telefono"] as const;
 export type OrigenReservacion = (typeof ORIGENES_RESERVACION)[number];
 
+export const TIPOS_RESERVACION = ["entrada", "camping", "hospedaje"] as const;
+export type TipoReservacion = (typeof TIPOS_RESERVACION)[number];
+
 export interface Reservacion {
   id: number;
   cliente_id: number;
   servicio_id: number;
-  usuario_id: number;
+  usuario_id: number | null;
   fecha_reservacion: string;
   fecha_visita: string; // date, ej. "2026-08-15"
+  // Agregados (fase portal público, ver app/schemas/reservacion.py del
+  // backend — ReservacionOut ya los devuelve, faltaban en este tipo).
+  tipo_reservacion: TipoReservacion;
+  fecha_llegada: string | null;
+  fecha_salida: string | null;
+  unidad_hospedaje_id: number | null;
   num_personas: number;
   estado: EstadoReservacion;
   origen: OrigenReservacion;

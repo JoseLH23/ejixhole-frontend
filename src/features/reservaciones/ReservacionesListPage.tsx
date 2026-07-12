@@ -1,9 +1,20 @@
 import * as React from "react";
-import { Plus, Search, CheckCircle2, XCircle, FlagTriangleRight, Wallet } from "lucide-react";
+import {
+  Plus,
+  Search,
+  CheckCircle2,
+  XCircle,
+  FlagTriangleRight,
+  Wallet,
+  Globe,
+  Building2,
+  Loader2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { EstadoBadge } from "@/components/ui/badge";
+import { Badge, EstadoBadge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
@@ -20,27 +31,119 @@ import { useServicios } from "@/features/servicios/useServicios";
 import { useReservaciones, useCambiarEstadoReservacion } from "./useReservaciones";
 import { ReservacionFormModal } from "./ReservacionFormModal";
 import { PagoModal } from "@/features/pagos/PagoModal";
-import { ESTADOS_RESERVACION, type EstadoReservacion, type Reservacion } from "@/types/reservacion";
+import {
+  ESTADOS_RESERVACION,
+  type EstadoReservacion,
+  type OrigenReservacion,
+  type Reservacion,
+} from "@/types/reservacion";
 
 const FILTRO_TODOS = "todos";
+
+const TIPO_LABELS: Record<string, string> = {
+  entrada: "Entrada",
+  camping: "Camping",
+  hospedaje: "Hospedaje",
+};
+
+/**
+ * Formatea una fecha "YYYY-MM-DD" como "15 ago" (es-MX, corta) sin
+ * depender de un helper compartido nuevo — es una necesidad puntual
+ * de esta tabla/tarjetas, no de otro módulo todavía.
+ */
+function formatearFechaCorta(fecha: string | null): string {
+  if (!fecha) return "—";
+  const partes = `${fecha}T00:00:00`;
+  const d = new Date(partes);
+  if (Number.isNaN(d.getTime())) return fecha;
+  return d.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
+}
+
+/**
+ * Rango de fechas de la reservación. "entrada" es un solo día
+ * (llegada === salida); camping/hospedaje muestran el rango completo.
+ * Si por alguna razón fecha_llegada viene vacía (datos antiguos),
+ * cae de vuelta a fecha_visita — misma lógica que ya usa el backend
+ * en app/services/notificacion_service.py.
+ */
+function formatearRangoFechas(r: Reservacion): string {
+  const llegada = r.fecha_llegada ?? r.fecha_visita;
+  const salida = r.fecha_salida;
+  if (!salida || salida === llegada) {
+    return formatearFechaCorta(llegada);
+  }
+  return `${formatearFechaCorta(llegada)} → ${formatearFechaCorta(salida)}`;
+}
+
+/**
+ * Distingue visualmente si la reservación llegó del portal público
+ * (visitante, sin intervención de personal) o fue registrada
+ * internamente (recepción/recepción express/teléfono). Basado en el
+ * campo real `origen` del backend (app/models/reservacion.py,
+ * ORIGENES_RESERVACION) — no se inventa ninguna heurística nueva.
+ */
+function OrigenBadge({ origen }: { origen: OrigenReservacion }) {
+  if (origen === "portal") {
+    return (
+      <Badge variant="secondary" className="gap-1">
+        <Globe className="h-3 w-3" />
+        Portal público
+      </Badge>
+    );
+  }
+  const label =
+    origen === "recepcion" ? "Recepción" : origen === "recepcion_express" ? "Recepción express" : "Teléfono";
+  return (
+    <Badge variant="outline" className="gap-1">
+      <Building2 className="h-3 w-3" />
+      {label}
+    </Badge>
+  );
+}
+
+interface Accion {
+  label: string;
+  nuevoEstado: EstadoReservacion;
+  Icon: typeof CheckCircle2;
+  destructiva: boolean;
+}
 
 /**
  * Transiciones de estado válidas según ReservacionService.cambiar_estado
  * en el backend: nunca desde un estado terminal (completada/cancelada),
  * nunca al mismo estado. Se listan aquí solo las que tienen sentido de
  * negocio (no se ofrece "volver a pendiente", por ejemplo).
+ *
+ * Para solicitudes pendientes que vinieron del portal público, el
+ * lenguaje cambia a "Aceptar"/"Rechazar" (son solicitudes de un
+ * visitante que el parque debe revisar) en vez de "Confirmar"/
+ * "Cancelar" (reservaciones ya capturadas por el personal). La
+ * transición de estado en el backend es idéntica en ambos casos —
+ * solo cambia la etiqueta mostrada.
  */
-function accionesDisponibles(estado: EstadoReservacion) {
-  if (estado === "pendiente") {
+function accionesDisponibles(r: Reservacion): Accion[] {
+  const esSolicitudPortal = r.origen === "portal" && r.estado === "pendiente";
+
+  if (r.estado === "pendiente") {
     return [
-      { label: "Confirmar", nuevoEstado: "confirmada" as const, Icon: CheckCircle2, destructiva: false },
-      { label: "Cancelar", nuevoEstado: "cancelada" as const, Icon: XCircle, destructiva: true },
+      {
+        label: esSolicitudPortal ? "Aceptar" : "Confirmar",
+        nuevoEstado: "confirmada",
+        Icon: CheckCircle2,
+        destructiva: false,
+      },
+      {
+        label: esSolicitudPortal ? "Rechazar" : "Cancelar",
+        nuevoEstado: "cancelada",
+        Icon: XCircle,
+        destructiva: true,
+      },
     ];
   }
-  if (estado === "confirmada") {
+  if (r.estado === "confirmada") {
     return [
-      { label: "Completar", nuevoEstado: "completada" as const, Icon: FlagTriangleRight, destructiva: false },
-      { label: "Cancelar", nuevoEstado: "cancelada" as const, Icon: XCircle, destructiva: true },
+      { label: "Completar", nuevoEstado: "completada", Icon: FlagTriangleRight, destructiva: false },
+      { label: "Cancelar", nuevoEstado: "cancelada", Icon: XCircle, destructiva: true },
     ];
   }
   return []; // completada/cancelada: estados terminales, sin acciones
@@ -107,9 +210,17 @@ export function ReservacionesListPage() {
     );
   }, [reservaciones, busquedaDebounced, nombreCliente, nombreServicio]);
 
+  // Fila actualmente en proceso (si alguna) — se usa para deshabilitar
+  // sus botones y mostrar "Procesando..." sin bloquear el resto de la
+  // tabla. `cambiarEstado.isPending` además deshabilita TODAS las
+  // acciones de cambio de estado mientras haya una en curso, para
+  // evitar doble clic / solicitudes duplicadas por cualquier fila.
+  const idEnProceso = cambiarEstado.isPending ? cambiarEstado.variables?.id ?? null : null;
+
   const solicitarTransicion = (reservacion: Reservacion, nuevoEstado: EstadoReservacion, label: string) => {
+    if (cambiarEstado.isPending) return; // ya hay una transición en curso — ignora el clic
     if (nuevoEstado === "cancelada") {
-      // Cancelar es irreversible — siempre pide confirmación.
+      // Cancelar/Rechazar es irreversible — siempre pide confirmación.
       setTransicionPendiente({ reservacion, nuevoEstado, label });
       return;
     }
@@ -117,6 +228,7 @@ export function ReservacionesListPage() {
   };
 
   const ejecutarTransicion = (reservacion: Reservacion, nuevoEstado: EstadoReservacion) => {
+    if (cambiarEstado.isPending) return;
     cambiarEstado.mutate(
       { id: reservacion.id, nuevoEstado },
       {
@@ -132,14 +244,48 @@ export function ReservacionesListPage() {
     );
   };
 
+  const renderAccionesFila = (r: Reservacion) => {
+    const procesandoEstaFila = idEnProceso === r.id;
+    return (
+      <div className="flex flex-wrap justify-end gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setPagoReservacionId(r.id)}
+          disabled={cambiarEstado.isPending}
+        >
+          <Wallet className="mr-1 h-4 w-4" />
+          Pagos
+        </Button>
+        {accionesDisponibles(r).map((accion) => (
+          <Button
+            key={accion.label}
+            variant="ghost"
+            size="sm"
+            onClick={() => solicitarTransicion(r, accion.nuevoEstado, accion.label)}
+            disabled={cambiarEstado.isPending}
+            className={accion.destructiva ? "text-destructive" : ""}
+          >
+            {procesandoEstaFila ? (
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+            ) : (
+              <accion.Icon className="mr-1 h-4 w-4" />
+            )}
+            {procesandoEstaFila ? "Procesando..." : accion.label}
+          </Button>
+        ))}
+      </div>
+    );
+  };
+
   const columnas: DataTableColumn<Reservacion>[] = [
+    { header: "Folio", cell: (r) => <span className="font-mono text-xs">#{r.id}</span> },
     { header: "Cliente", cell: (r) => nombreCliente(r.cliente_id) },
-    { header: "Servicio", cell: (r) => nombreServicio(r.servicio_id) },
-    { header: "Fecha visita", cell: (r) => r.fecha_visita },
+    { header: "Tipo", cell: (r) => TIPO_LABELS[r.tipo_reservacion] ?? r.tipo_reservacion },
+    { header: "Fechas", cell: (r) => <span className="whitespace-nowrap">{formatearRangoFechas(r)}</span> },
     { header: "Personas", cell: (r) => r.num_personas },
-    { header: "Estado", cell: (r) => <EstadoBadge estado={r.estado} /> },
     {
-      header: "Saldo",
+      header: "Total",
       cell: (r) => (
         <span className="font-mono">
           {formatearMoneda(r.saldo_pendiente)}
@@ -147,6 +293,8 @@ export function ReservacionesListPage() {
         </span>
       ),
     },
+    { header: "Estado", cell: (r) => <EstadoBadge estado={r.estado} /> },
+    { header: "Origen", cell: (r) => <OrigenBadge origen={r.origen} /> },
   ];
 
   return (
@@ -241,31 +389,91 @@ export function ReservacionesListPage() {
       )}
 
       {!isLoading && !isError && reservacionesFiltradas.length > 0 && (
-        <DataTable
-          columns={columnas}
-          data={reservacionesFiltradas}
-          getRowId={(r) => r.id}
-          renderAcciones={(r) => (
-            <div className="flex justify-end gap-1">
-              <Button variant="ghost" size="sm" onClick={() => setPagoReservacionId(r.id)}>
-                <Wallet className="mr-1 h-4 w-4" />
-                Pagos
-              </Button>
-              {accionesDisponibles(r.estado).map((accion) => (
-                <Button
-                  key={accion.label}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => solicitarTransicion(r, accion.nuevoEstado, accion.label)}
-                  className={accion.destructiva ? "text-destructive" : ""}
-                >
-                  <accion.Icon className="mr-1 h-4 w-4" />
-                  {accion.label}
-                </Button>
-              ))}
-            </div>
-          )}
-        />
+        <>
+          {/* Escritorio/tablet ancho: tabla completa con scroll horizontal si hace falta. */}
+          <div className="hidden md:block">
+            <DataTable
+              columns={columnas}
+              data={reservacionesFiltradas}
+              getRowId={(r) => r.id}
+              renderAcciones={renderAccionesFila}
+            />
+          </div>
+
+          {/* Móvil: tarjetas apiladas, sin tabla — nada de scroll horizontal ni zoom. */}
+          <div className="grid gap-3 md:hidden">
+            {reservacionesFiltradas.map((r) => (
+              <Card key={r.id} className="p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-mono text-xs text-muted-foreground">#{r.id}</p>
+                    <p className="font-semibold">{nombreCliente(r.cliente_id)}</p>
+                  </div>
+                  <OrigenBadge origen={r.origen} />
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Tipo</p>
+                    <p>{TIPO_LABELS[r.tipo_reservacion] ?? r.tipo_reservacion}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Fechas</p>
+                    <p>{formatearRangoFechas(r)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Personas</p>
+                    <p>{r.num_personas}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Total</p>
+                    <p className="font-mono">
+                      {formatearMoneda(r.saldo_pendiente)}
+                      <span className="text-xs text-muted-foreground"> / {formatearMoneda(r.total)}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-3">
+                  <EstadoBadge estado={r.estado} />
+                </div>
+
+                <div className="mt-4 flex flex-col gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setPagoReservacionId(r.id)}
+                    disabled={cambiarEstado.isPending}
+                  >
+                    <Wallet className="mr-1 h-4 w-4" />
+                    Pagos
+                  </Button>
+                  {accionesDisponibles(r).map((accion) => {
+                    const procesandoEstaFila = idEnProceso === r.id;
+                    return (
+                      <Button
+                        key={accion.label}
+                        variant={accion.destructiva ? "destructive" : "default"}
+                        size="sm"
+                        className="w-full"
+                        onClick={() => solicitarTransicion(r, accion.nuevoEstado, accion.label)}
+                        disabled={cambiarEstado.isPending}
+                      >
+                        {procesandoEstaFila ? (
+                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                        ) : (
+                          <accion.Icon className="mr-1 h-4 w-4" />
+                        )}
+                        {procesandoEstaFila ? "Procesando..." : accion.label}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </Card>
+            ))}
+          </div>
+        </>
       )}
 
       <ReservacionFormModal open={modalAbierto} onOpenChange={setModalAbierto} />
@@ -282,13 +490,15 @@ export function ReservacionesListPage() {
       <ConfirmDialog
         open={transicionPendiente !== null}
         onOpenChange={(open) => !open && setTransicionPendiente(null)}
-        titulo="¿Cancelar esta reservación?"
+        titulo={transicionPendiente?.reservacion.origen === "portal" ? "¿Rechazar esta solicitud?" : "¿Cancelar esta reservación?"}
         descripcion={
           transicionPendiente
-            ? `La reservación de ${nombreCliente(transicionPendiente.reservacion.cliente_id)} pasará a estado "cancelada". Esta acción no se puede deshacer.`
+            ? transicionPendiente.reservacion.origen === "portal"
+              ? `La solicitud del portal público de ${nombreCliente(transicionPendiente.reservacion.cliente_id)} pasará a estado "cancelada" y no se le asignará el servicio. Esta acción no se puede deshacer.`
+              : `La reservación de ${nombreCliente(transicionPendiente.reservacion.cliente_id)} pasará a estado "cancelada". Esta acción no se puede deshacer.`
             : ""
         }
-        textoConfirmar="Cancelar reservación"
+        textoConfirmar={transicionPendiente?.reservacion.origen === "portal" ? "Rechazar solicitud" : "Cancelar reservación"}
         variante="destructive"
         cargando={cambiarEstado.isPending}
         onConfirmar={() =>
