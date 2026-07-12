@@ -10,16 +10,17 @@ interface ErrorStateProps {
   retrying?: boolean;
 }
 
+/** Mismo ajuste que EmptyState.tsx: tamaño por contenido, no h-[40vh]. */
 export function ErrorState({ titulo, error, onRetry, retrying }: ErrorStateProps) {
   const info = getErrorInfo(error, titulo);
 
   return (
-    <div className="flex h-[40vh] flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-center">
-      <AlertTriangle className="h-10 w-10 text-destructive" />
-      <h3 className="font-medium">{titulo ?? info.title}</h3>
-      <p className="max-w-sm text-sm text-muted-foreground">{info.description}</p>
+    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-8 text-center">
+      <AlertTriangle className="h-8 w-8 text-destructive" />
+      <h3 className="text-sm font-medium">{titulo ?? info.title}</h3>
+      <p className="max-w-sm text-xs text-muted-foreground">{info.description}</p>
       {onRetry && (
-        <Button onClick={onRetry} disabled={retrying}>
+        <Button onClick={onRetry} disabled={retrying} size="sm">
           {retrying ? "Reintentando..." : "Reintentar"}
         </Button>
       )}

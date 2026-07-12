@@ -33,9 +33,9 @@ export function ActividadReciente() {
 
         {!isLoading && (data?.items.length ?? 0) === 0 && (
           <EmptyState
-            titulo="Sin visitas próximas"
+            titulo="Sin visitas confirmadas"
             icon={CalendarClock}
-            descripcion="No hay reservaciones confirmadas para los próximos 7 días."
+            descripcion="Solo cuenta lo ya confirmado. Si tienes solicitudes del portal público pendientes, acéptalas en Reservaciones para que aparezcan aquí."
           />
         )}
 

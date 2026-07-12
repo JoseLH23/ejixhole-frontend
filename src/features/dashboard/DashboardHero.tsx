@@ -44,7 +44,7 @@ export function DashboardHero({ nombre }: DashboardHeroProps) {
           className="absolute inset-0 h-full w-full object-cover"
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-black/5" />
 
       <div className="relative z-10 flex min-h-[8rem] flex-col justify-end p-5 text-white sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

@@ -45,7 +45,11 @@ export function ProximasReservacionesCards() {
           ))}
 
         {!isLoading && (data?.items.length ?? 0) === 0 && (
-          <EmptyState titulo="Sin reservaciones próximas" icon={Calendar} />
+          <EmptyState
+            titulo="Sin reservaciones confirmadas"
+            icon={Calendar}
+            descripcion="Acepta solicitudes pendientes del portal en Reservaciones para verlas aquí."
+          />
         )}
 
         {!isLoading &&

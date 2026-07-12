@@ -43,6 +43,12 @@ function inicialesDe(nombre: string): string {
   return nombre.slice(0, 2).toUpperCase();
 }
 
+const NOMBRE_CORTO_SISTEMA: Record<string, string> = {
+  backend: "Backend API",
+  portal: "Portal público",
+  frontend: "Frontend admin",
+};
+
 /**
  * Navegación agrupada + bloque de usuario/logout al final.
  *
@@ -165,7 +171,7 @@ export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarPro
           <div className="space-y-1">
             {sistemas.map((s) => (
               <div key={s.id} className="flex items-center justify-between text-[11px]">
-                <span className="truncate text-muted-foreground">{s.nombre}</span>
+                <span className="truncate text-muted-foreground">{NOMBRE_CORTO_SISTEMA[s.id] ?? s.nombre}</span>
                 <span
                   className={cn(
                     "flex shrink-0 items-center gap-1 font-medium",
