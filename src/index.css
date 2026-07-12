@@ -78,6 +78,13 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    /* Profundidad sutil: el fondo ya no es un solo tono plano — dos
+       radiales muy tenues con los colores de marca, casi imperceptibles
+       pero rompen la planitud del resto de la interfaz. */
+    background-image:
+      radial-gradient(at 0% 0%, hsl(var(--secondary) / 0.05) 0px, transparent 45%),
+      radial-gradient(at 100% 100%, hsl(var(--primary) / 0.05) 0px, transparent 45%);
+    background-attachment: fixed;
   }
   h1, h2, h3, h4 {
     @apply font-display;

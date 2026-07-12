@@ -18,6 +18,7 @@ import { ProximasReservacionesCards } from "./ProximasReservacionesCards";
 import { ReservacionesPorEstadoChart } from "./ReservacionesPorEstadoChart";
 import { IngresosUltimos7DiasChart } from "./IngresosUltimos7DiasChart";
 import { obtenerIconoTarjeta } from "./dashboardIcons";
+import { nombreVisible } from "@/lib/nombreUsuario";
 
 /**
  * KPIs de la fila principal — 4 tarjetas reales de /dashboard/resumen.
@@ -36,7 +37,7 @@ export function DashboardPage() {
   const { usuario, tieneRol } = useAuth();
   const { data, isLoading, isError, error, refetch, isFetching, dataUpdatedAt } = useDashboardResumen();
 
-  const nombre = usuario?.email.split("@")[0] ?? "";
+  const nombre = usuario ? nombreVisible(usuario.email) : "";
   const esAdmin = tieneRol(["admin"]);
 
   if (isLoading) return <DashboardSkeleton />;

@@ -2,7 +2,8 @@ import { useLocation } from "react-router-dom";
 import { useIsFetching } from "@tanstack/react-query";
 import { Menu, Search, Circle, ChevronRight } from "lucide-react";
 
-import { useEstadoSistema } from "@/hooks/useEstadoSistema";
+import { useEstadoSistemas } from "@/hooks/useEstadoSistema";
+import { etiquetaAtajoBuscar } from "@/lib/platform";
 import { encontrarSeccionActual } from "@/router/breadcrumb";
 import { cn } from "@/lib/utils";
 
@@ -21,13 +22,13 @@ interface TopbarProps {
  */
 export function Topbar({ onAbrirMenu, onAbrirPaleta }: TopbarProps) {
   const location = useLocation();
-  const { enLinea } = useEstadoSistema();
+  const { enLinea } = useEstadoSistemas();
   const seccion = encontrarSeccionActual(location.pathname);
 
   const numeroDeFetchesActivos = useIsFetching();
 
   return (
-    <header className="relative flex h-12 items-center gap-3 border-b border-border bg-card/80 px-4 backdrop-blur-sm sm:px-6">
+    <header className="relative flex h-11 items-center gap-3 border-b border-border bg-card/80 px-4 backdrop-blur-sm sm:px-6">
       <button
         onClick={onAbrirMenu}
         className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent md:hidden"
@@ -61,7 +62,7 @@ export function Topbar({ onAbrirMenu, onAbrirPaleta }: TopbarProps) {
       >
         <Search className="h-3.5 w-3.5" />
         Buscar
-        <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-[10px]">⌘K</kbd>
+        <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-[10px]">{etiquetaAtajoBuscar()}</kbd>
       </button>
 
       {/* Estado del sistema — real, contra GET /status */}

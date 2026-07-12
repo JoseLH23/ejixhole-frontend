@@ -65,7 +65,7 @@ const TableHead = React.forwardRef<
     ref={ref}
     className={cn(
       // Compactado: h-12→h-9, tracking un poco menor para que quepa más.
-      "h-9 px-3 text-left align-middle text-[11px] font-semibold uppercase tracking-wide text-muted-foreground",
+      "h-8 px-2.5 text-left align-middle text-[10px] font-semibold uppercase tracking-wide text-muted-foreground",
       className
     )}
     {...props}
@@ -78,7 +78,7 @@ const TableCell = React.forwardRef<
   React.TdHTMLAttributes<HTMLTableCellElement>
 >(({ className, ...props }, ref) => (
   // Compactado: py-3.5→py-2, px-4→px-3 — menos altura por fila, misma legibilidad.
-  <td ref={ref} className={cn("px-3 py-2 align-middle text-sm", className)} {...props} />
+  <td ref={ref} className={cn("px-2.5 py-1.5 align-middle text-[13px]", className)} {...props} />
 ));
 TableCell.displayName = "TableCell";
 

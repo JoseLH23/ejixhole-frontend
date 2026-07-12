@@ -5,7 +5,6 @@ import { AppShell } from "@/components/layout/AppShell";
 import { RequireAuth } from "./RequireAuth";
 import { RequireRole } from "./RequireRole";
 import { LoginPage } from "@/features/auth/LoginPage";
-import { ComingSoonPage } from "@/pages/ComingSoonPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { UnauthorizedPage } from "@/pages/UnauthorizedPage";
 
@@ -80,6 +79,9 @@ const ProximasReservacionesReportPage = React.lazy(() =>
     default: m.ProximasReservacionesReportPage,
   }))
 );
+const UsuariosPage = React.lazy(() =>
+  import("@/features/usuarios/UsuariosPage").then((m) => ({ default: m.UsuariosPage }))
+);
 
 function CargandoModulo() {
   return (
@@ -119,7 +121,7 @@ export function AppRouter() {
                 <Route path="/reportes/tendencia-reservaciones" element={<TendenciaReservacionesReportPage />} />
                 <Route path="/reportes/clientes-nuevos" element={<ClientesNuevosReportPage />} />
                 <Route path="/reportes/proximas-reservaciones" element={<ProximasReservacionesReportPage />} />
-                <Route path="/usuarios" element={<ComingSoonPage titulo="Usuarios" />} />
+                <Route path="/usuarios" element={<UsuariosPage />} />
               </Route>
 
               <Route element={<RequireRole roles={["admin", "cajero"]} />}>

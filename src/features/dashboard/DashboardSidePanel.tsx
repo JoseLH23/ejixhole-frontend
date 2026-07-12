@@ -1,52 +1,66 @@
-import { Circle, Server, RefreshCw } from "lucide-react";
+import { Circle, Server, Globe, Monitor, RefreshCw } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useEstadoSistema } from "@/hooks/useEstadoSistema";
+import { useEstadoSistemas } from "@/hooks/useEstadoSistema";
 
 interface DashboardSidePanelProps {
   /** Timestamp real de React Query (dataUpdatedAt) — no una hora inventada. */
   ultimaActualizacion: number;
 }
 
+const ICONOS: Record<string, typeof Server> = {
+  backend: Server,
+  portal: Globe,
+  frontend: Monitor,
+};
+
+const ESTADO_COLOR: Record<string, string> = {
+  en_linea: "text-success",
+  degradado: "text-warning",
+  sin_conexion: "text-destructive",
+};
+
+const ESTADO_LABEL: Record<string, string> = {
+  en_linea: "En línea",
+  degradado: "Degradado",
+  sin_conexion: "Sin conexión",
+};
+
 /**
- * "Estado del sistema" — Entrega 8: se quitó la tarjeta de foto que
- * tenía en la Entrega 7 (en la nueva referencia, ese tipo de tarjeta
- * vive en el Sidebar, que está fuera de alcance de esta entrega).
- *
- * Nota de precisión (se mantiene desde la Entrega 7): `GET /status`
- * solo confirma que el proceso de FastAPI responde — NO verifica la
- * base de datos por separado. Por eso hay un único indicador "API
- * backend", no uno inventado de "Base de datos".
+ * "Estado del sistema" — ahora verifica los 3 sistemas reales del
+ * ecosistema (backend, portal público, frontend administrativo) en
+ * vez de solo el backend. Ver useEstadoSistemas.ts para el detalle
+ * exacto de cómo se verifica cada uno por HTTP.
  */
 export function DashboardSidePanel({ ultimaActualizacion }: DashboardSidePanelProps) {
-  const { enLinea } = useEstadoSistema();
+  const { sistemas } = useEstadoSistemas();
 
   return (
     <Card className="animate-fade-in-up" style={{ animationDelay: "60ms" }}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">Estado del sistema</CardTitle>
+      <CardHeader className="pb-2.5">
+        <CardTitle className="text-sm">Estado del sistema</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm">
-        <div className="flex items-center justify-between">
+      <CardContent className="space-y-2.5 text-sm">
+        {sistemas.map((s) => {
+          const Icon = ICONOS[s.id] ?? Server;
+          return (
+            <div key={s.id} className="flex items-center justify-between border-t border-border pt-2.5 first:border-t-0 first:pt-0">
+              <span className="flex items-center gap-2 text-muted-foreground">
+                <Icon className="h-3.5 w-3.5" /> {s.nombre}
+              </span>
+              <span className={cn("flex items-center gap-1.5 font-medium", ESTADO_COLOR[s.estado])}>
+                <Circle className="h-2 w-2 fill-current" />
+                {ESTADO_LABEL[s.estado]}
+              </span>
+            </div>
+          );
+        })}
+        <div className="flex items-center justify-between border-t border-border pt-2.5">
           <span className="flex items-center gap-2 text-muted-foreground">
-            <Server className="h-4 w-4" /> API backend
-          </span>
-          <span
-            className={cn(
-              "flex items-center gap-1.5 font-medium",
-              enLinea ? "text-success" : "text-destructive"
-            )}
-          >
-            <Circle className="h-2 w-2 fill-current" />
-            {enLinea ? "En línea" : "Sin conexión"}
-          </span>
-        </div>
-        <div className="flex items-center justify-between border-t border-border pt-3">
-          <span className="flex items-center gap-2 text-muted-foreground">
-            <RefreshCw className="h-4 w-4" /> Última sincronización
+            <RefreshCw className="h-3.5 w-3.5" /> Última sincronización
           </span>
           <span className="font-medium">
             {formatDistanceToNow(ultimaActualizacion, { addSuffix: true, locale: es })}

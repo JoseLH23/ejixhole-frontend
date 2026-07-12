@@ -1,3 +1,4 @@
+import * as React from "react";
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
@@ -38,24 +39,27 @@ interface PageHeaderProps {
  */
 export function PageHeader({ titulo, descripcion, icon: Icon, acento = "primary", fotoUrl, fotoAlt, acciones }: PageHeaderProps) {
   const clases = ACENTO_CLASES[acento];
+  const [fotoFallo, setFotoFallo] = React.useState(false);
+  const mostrarFoto = fotoUrl && !fotoFallo;
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-premium sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-center gap-3">
-        {fotoUrl ? (
+    <div className="flex flex-col gap-2.5 rounded-xl border border-border bg-card p-3 shadow-premium sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-2.5">
+        {mostrarFoto ? (
           <img
             src={fotoUrl}
             alt={fotoAlt ?? ""}
-            className="h-12 w-12 shrink-0 rounded-lg object-cover ring-1 ring-border"
+            onError={() => setFotoFallo(true)}
+            className="h-10 w-10 shrink-0 rounded-lg object-cover ring-1 ring-border"
           />
         ) : (
-          <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-lg", clases.chip)}>
-            <Icon className={cn("h-5 w-5", clases.icon)} />
+          <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg", clases.chip)}>
+            <Icon className={cn("h-4 w-4", clases.icon)} />
           </div>
         )}
         <div>
-          <h1 className="font-display text-2xl font-semibold leading-tight">{titulo}</h1>
-          <p className="text-sm text-muted-foreground">{descripcion}</p>
+          <h1 className="font-display text-xl font-semibold leading-tight">{titulo}</h1>
+          <p className="text-xs text-muted-foreground">{descripcion}</p>
         </div>
       </div>
       {acciones && <div className="flex shrink-0 items-center gap-2">{acciones}</div>}

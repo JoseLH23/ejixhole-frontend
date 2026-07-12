@@ -42,7 +42,7 @@ interface DataTableProps<T> {
  * (la que se agregó a mano en Reservaciones se retira a favor de
  * esta versión genérica).
  */
-export function DataTable<T>({ columns, data, getRowId, renderAcciones, pageSize = 12 }: DataTableProps<T>) {
+export function DataTable<T>({ columns, data, getRowId, renderAcciones, pageSize = 10 }: DataTableProps<T>) {
   const [pagina, setPagina] = React.useState(1);
 
   // Si cambian los filtros (nueva referencia de `data`) o la lista se
