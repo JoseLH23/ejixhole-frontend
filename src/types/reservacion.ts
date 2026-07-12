@@ -42,9 +42,27 @@ export interface ReservacionCreateInput {
    * explícito. Ver docs/entrega-3c.md para cómo se resuelve en la UI.
    */
   usuario_id: number;
-  fecha_visita: string;
+  tipo_reservacion: TipoReservacion;
+  fecha_llegada: string;
+  fecha_salida: string;
+  /** Solo obligatorio (y solo válido) cuando tipo_reservacion === "hospedaje". */
+  unidad_hospedaje_id?: number;
   num_personas: number;
   origen: OrigenReservacion;
+  notas?: string;
+}
+
+/**
+ * PUT /reservaciones/{id} — no incluye cliente_id, usuario_id, origen
+ * ni tipo_reservacion a propósito: el backend no los acepta al editar
+ * (ver docstring de ReservacionService.actualizar en el backend).
+ */
+export interface ReservacionUpdateInput {
+  servicio_id?: number;
+  fecha_llegada?: string;
+  fecha_salida?: string;
+  num_personas?: number;
+  unidad_hospedaje_id?: number;
   notas?: string;
 }
 

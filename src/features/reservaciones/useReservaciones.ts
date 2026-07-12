@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { reservacionesApi, type ListarReservacionesParams } from "@/api/reservaciones";
-import type { EstadoReservacion, ReservacionCreateInput } from "@/types/reservacion";
+import type { EstadoReservacion, ReservacionCreateInput, ReservacionUpdateInput } from "@/types/reservacion";
 
 export const RESERVACIONES_QUERY_KEY = ["reservaciones"] as const;
 
@@ -24,10 +24,25 @@ export function useCrearReservacion() {
 }
 
 /**
+ * Edita fechas, personas, servicio y/o notas de una reservación ya
+ * creada — PUT /reservaciones/{id} (backend real, no inventado). No
+ * cubre cambiar cliente/tipo/origen/estado: eso sigue sin existir a
+ * propósito (ver ReservacionService.actualizar en el backend).
+ */
+export function useActualizarReservacion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: ReservacionUpdateInput }) =>
+      reservacionesApi.actualizar(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RESERVACIONES_QUERY_KEY });
+    },
+  });
+}
+
+/**
  * Cubre tanto "cambiar estado" como "cancelar" — cancelar es
- * exactamente esta misma mutación con `nuevo_estado: "cancelada"`. El
- * backend no tiene un endpoint de edición de detalles (fecha,
- * personas, etc.) — ver docs/entrega-3c.md.
+ * exactamente esta misma mutación con `nuevo_estado: "cancelada"`.
  */
 export function useCambiarEstadoReservacion() {
   const queryClient = useQueryClient();

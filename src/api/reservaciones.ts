@@ -4,6 +4,7 @@ import type {
   Reservacion,
   ReservacionCreateInput,
   ReservacionEstadoUpdateInput,
+  ReservacionUpdateInput,
 } from "@/types/reservacion";
 
 export interface ListarReservacionesParams {
@@ -24,6 +25,11 @@ export const reservacionesApi = {
 
   crear: async (data: ReservacionCreateInput): Promise<Reservacion> => {
     const response = await apiClient.post<Reservacion>("/reservaciones", data);
+    return response.data;
+  },
+
+  actualizar: async (id: number, data: ReservacionUpdateInput): Promise<Reservacion> => {
+    const response = await apiClient.put<Reservacion>(`/reservaciones/${id}`, data);
     return response.data;
   },
 

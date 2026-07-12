@@ -10,6 +10,7 @@ import {
   Building2,
   Loader2,
   CalendarCheck,
+  Pencil,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -162,6 +163,7 @@ export function ReservacionesListPage() {
   const busquedaDebounced = useDebounce(busqueda);
 
   const [modalAbierto, setModalAbierto] = React.useState(false);
+  const [reservacionEditar, setReservacionEditar] = React.useState<Reservacion | null>(null);
   const [pagoReservacionId, setPagoReservacionId] = React.useState<number | null>(null);
   const [transicionPendiente, setTransicionPendiente] = React.useState<{
     reservacion: Reservacion;
@@ -247,8 +249,20 @@ export function ReservacionesListPage() {
 
   const renderAccionesFila = (r: Reservacion) => {
     const procesandoEstaFila = idEnProceso === r.id;
+    const esEditable = r.estado !== "completada" && r.estado !== "cancelada";
     return (
       <div className="flex flex-wrap justify-end gap-1">
+        {esEditable && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setReservacionEditar(r)}
+            disabled={cambiarEstado.isPending}
+          >
+            <Pencil className="mr-1 h-4 w-4" />
+            Editar
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="sm"
@@ -402,7 +416,16 @@ export function ReservacionesListPage() {
         />
       )}
 
-      <ReservacionFormModal open={modalAbierto} onOpenChange={setModalAbierto} />
+      <ReservacionFormModal
+        open={modalAbierto || reservacionEditar !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setModalAbierto(false);
+            setReservacionEditar(null);
+          }
+        }}
+        reservacionEditar={reservacionEditar}
+      />
 
       {pagoReservacionId !== null && (
         <PagoModal
