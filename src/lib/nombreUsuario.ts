@@ -2,25 +2,17 @@
  * Nombre visible del usuario en el saludo del Dashboard y el menú de
  * cuenta del Sidebar.
  *
- * BLOQUEADO POR BACKEND: el JWT que devuelve POST /auth/login solo
- * lleva `sub` (email) y `rol` (ver app/core/security.py:
- * create_access_token — payload = {"sub": subject, "rol": rol, "exp":
- * expire}). El modelo Usuario del backend SÍ tiene un campo `nombre`
- * (app/models/usuario.py), pero nunca se expone al frontend: no existe
- * GET /auth/me, y el JWT no lo incluye. Es decir, hoy es
- * estructuralmente imposible mostrar el nombre real sin un cambio de
- * backend — que esta entrega tiene prohibido tocar.
+ * ACTUALIZACIÓN (Fase 1, GET /auth/me implementado): el backend ya
+ * expone el nombre real (`app/routes/auth_routes.py` — GET /auth/me,
+ * reutiliza `get_current_user`). `AuthContext.tsx` lo trae de forma
+ * asíncrona apenas hay sesión y lo guarda en `usuario.nombre`.
  *
- * Para desbloquear esto de verdad, la opción más simple es una de:
- *   a) agregar "nombre": usuario.nombre al payload en create_access_token, o
- *   b) exponer GET /auth/me -> UsuarioOut (el schema YA existe y ya
- *      incluye `nombre`, solo falta la ruta).
- *
- * Mientras tanto, este archivo es el ÚNICO lugar del proyecto con un
- * nombre hardcodeado — explícito, aislado, y fácil de borrar en cuanto
- * el backend exponga el dato real. Se aplica solo por coincidencia de
- * email (no por texto libre), así que nunca le pone "José Larios" a
- * otro usuario del sistema.
+ * Esta función ahora es solo el **respaldo**, usado únicamente cuando
+ * `usuario.nombre` todavía no llegó (ej. el instante entre restaurar
+ * la sesión y que resuelva la llamada a /auth/me) o si esa llamada
+ * falla por red. Ya no es la única fuente de verdad — se deja el mapa
+ * de `chepo23larios` como fallback explícito para ese caso puntual,
+ * documentado igual que antes.
  */
 const NOMBRES_TEMPORALES: Record<string, string> = {
   chepo23larios: "José Larios",

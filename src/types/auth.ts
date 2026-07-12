@@ -30,4 +30,15 @@ export interface JwtPayload {
 export interface UsuarioActual {
   email: string;
   rol: Rol;
+  /** Se llena de forma asíncrona vía GET /auth/me tras el login/restauración de sesión — puede no estar listo en el primer render. */
+  nombre?: string;
+}
+
+/** Respuesta real de GET /auth/me (app/schemas/auth.py: UsuarioOut). */
+export interface UsuarioMe {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: Rol;
+  activo: boolean;
 }

@@ -37,7 +37,7 @@ export function DashboardPage() {
   const { usuario, tieneRol } = useAuth();
   const { data, isLoading, isError, error, refetch, isFetching, dataUpdatedAt } = useDashboardResumen();
 
-  const nombre = usuario ? nombreVisible(usuario.email) : "";
+  const nombre = usuario ? usuario.nombre?.trim() || nombreVisible(usuario.email) : "";
   const esAdmin = tieneRol(["admin"]);
 
   if (isLoading) return <DashboardSkeleton />;

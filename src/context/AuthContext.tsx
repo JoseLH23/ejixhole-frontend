@@ -56,6 +56,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const usuarioRef = React.useRef(usuario);
   usuarioRef.current = usuario;
 
+  /**
+   * Trae el nombre real (GET /auth/me) y lo aplica al usuario ya en
+   * sesión, sin bloquear login ni restauración — email/rol del JWT ya
+   * son suficientes para que RequireAuth/RequireRole funcionen de
+   * inmediato. Si /me falla (red, etc.), el usuario simplemente se
+   * queda sin `nombre` y los componentes usan el fallback documentado
+   * en lib/nombreUsuario.ts — nunca rompe la sesión.
+   */
+  const cargarNombreReal = React.useCallback(async () => {
+    try {
+      const perfil = await authApi.me();
+      setUsuario((actual) => (actual ? { ...actual, nombre: perfil.nombre } : actual));
+    } catch {
+      // Silencioso a propósito: si el token ya expiró, el interceptor
+      // de 401 se encarga de cerrar sesión por su cuenta.
+    }
+  }, []);
+
   // Al montar la app: si hay un token guardado y no expiró, restaura
   // la sesión sin pedirle credenciales de nuevo al usuario.
   React.useEffect(() => {
@@ -64,12 +82,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const usuarioRestaurado = decodificarUsuario(token);
       if (usuarioRestaurado) {
         setUsuario(usuarioRestaurado);
+        void cargarNombreReal();
       } else {
         clearStoredToken();
       }
     }
     setIsLoading(false);
-  }, []);
+  }, [cargarNombreReal]);
 
   // El interceptor de Axios (api/client.ts) no puede importar este
   // Context directamente (evita acoplar la capa de API a React), así
@@ -90,12 +109,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, [toast]);
 
-  const login = React.useCallback(async (email: string, password: string) => {
-    const { access_token } = await authApi.login({ email, password });
-    setStoredToken(access_token);
-    const usuarioLogueado = decodificarUsuario(access_token);
-    setUsuario(usuarioLogueado);
-  }, []);
+  const login = React.useCallback(
+    async (email: string, password: string) => {
+      const { access_token } = await authApi.login({ email, password });
+      setStoredToken(access_token);
+      const usuarioLogueado = decodificarUsuario(access_token);
+      setUsuario(usuarioLogueado);
+      if (usuarioLogueado) void cargarNombreReal();
+    },
+    [cargarNombreReal]
+  );
 
   const logout = React.useCallback(() => {
     clearStoredToken();

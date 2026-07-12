@@ -70,7 +70,7 @@ export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarPro
     items: NAV_ITEMS.filter((item) => item.grupo === grupo && usuario && item.roles.includes(usuario.rol)),
   })).filter((g) => g.items.length > 0);
 
-  const nombre = usuario ? nombreVisible(usuario.email) : "";
+  const nombre = usuario ? usuario.nombre?.trim() || nombreVisible(usuario.email) : "";
   const sistemasCaidos = sistemas.filter((s) => s.estado !== "en_linea").length;
 
   const handleLogout = () => {
