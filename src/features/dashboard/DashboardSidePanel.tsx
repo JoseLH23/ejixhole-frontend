@@ -40,14 +40,14 @@ export function DashboardSidePanel({ ultimaActualizacion }: DashboardSidePanelPr
 
   return (
     <Card className="animate-fade-in-up" style={{ animationDelay: "60ms" }}>
-      <CardHeader className="pb-2.5">
+      <CardHeader className="pb-2">
         <CardTitle className="text-sm">Estado del sistema</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2.5 text-sm">
+      <CardContent className="space-y-2 text-sm">
         {sistemas.map((s) => {
           const Icon = ICONOS[s.id] ?? Server;
           return (
-            <div key={s.id} className="flex items-center justify-between border-t border-border pt-2.5 first:border-t-0 first:pt-0">
+            <div key={s.id} className="flex items-center justify-between border-t border-border pt-2 first:border-t-0 first:pt-0">
               <span className="flex items-center gap-2 text-muted-foreground">
                 <Icon className="h-3.5 w-3.5" /> {s.nombre}
               </span>
@@ -58,7 +58,7 @@ export function DashboardSidePanel({ ultimaActualizacion }: DashboardSidePanelPr
             </div>
           );
         })}
-        <div className="flex items-center justify-between border-t border-border pt-2.5">
+        <div className="flex items-center justify-between border-t border-border pt-2">
           <span className="flex items-center gap-2 text-muted-foreground">
             <RefreshCw className="h-3.5 w-3.5" /> Última sincronización
           </span>

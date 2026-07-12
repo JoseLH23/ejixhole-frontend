@@ -32,7 +32,7 @@ export function ProximasReservacionesCards() {
 
   return (
     <Card className="animate-fade-in-up" style={{ animationDelay: "60ms" }}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
           <CardTitle className="text-base">Próximas reservaciones</CardTitle>
           <CardDescription>Confirmadas para los siguientes 7 días.</CardDescription>

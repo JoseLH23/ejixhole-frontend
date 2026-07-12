@@ -18,7 +18,7 @@ export function ActividadReciente() {
 
   return (
     <Card className="animate-fade-in-up" style={{ animationDelay: "270ms" }}>
-      <CardHeader>
+      <CardHeader className="pb-2">
         <CardTitle className="text-base">Actividad reciente</CardTitle>
         <CardDescription>Próximas visitas confirmadas (siguientes 7 días).</CardDescription>
       </CardHeader>

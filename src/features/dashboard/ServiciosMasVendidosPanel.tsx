@@ -15,7 +15,7 @@ export function ServiciosMasVendidosPanel() {
 
   return (
     <Card className="animate-fade-in-up" style={{ animationDelay: "120ms" }}>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <CardTitle className="text-base">Servicios más vendidos</CardTitle>
         <CardDescription>Por número de reservaciones (mes actual).</CardDescription>
       </CardHeader>

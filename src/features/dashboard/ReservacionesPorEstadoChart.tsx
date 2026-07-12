@@ -26,21 +26,21 @@ export function ReservacionesPorEstadoChart() {
 
   return (
     <Card className="animate-fade-in-up" style={{ animationDelay: "180ms" }}>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <CardTitle className="text-base">Reservaciones por estado</CardTitle>
         <CardDescription>Mes actual · {data?.total ?? 0} en total.</CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading && <div className="skeleton-shimmer h-40 animate-shimmer rounded-full" />}
+        {isLoading && <div className="skeleton-shimmer h-24 animate-shimmer rounded-full" />}
 
         {!isLoading && datos.length === 0 && <EmptyState titulo="Sin reservaciones este mes" />}
 
         {!isLoading && datos.length > 0 && (
           <div className="flex items-center gap-4">
-            <div className="h-36 w-36 shrink-0">
+            <div className="h-24 w-24 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={datos} dataKey="cantidad" nameKey="nombre" innerRadius={38} outerRadius={62} paddingAngle={2}>
+                  <Pie data={datos} dataKey="cantidad" nameKey="nombre" innerRadius={24} outerRadius={40} paddingAngle={2}>
                     {datos.map((d) => (
                       <Cell key={d.estado} fill={CHART_COLOR_POR_ESTADO[d.estado] ?? CHART_COLORS.primary} />
                     ))}

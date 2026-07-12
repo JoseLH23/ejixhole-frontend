@@ -1,62 +1,76 @@
-import { UserCog, ShieldAlert } from "lucide-react";
+import { UserCog } from "lucide-react";
 
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Card, CardContent } from "@/components/ui/card";
+import { Badge, EstadoBadge } from "@/components/ui/badge";
+import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { TableSkeleton } from "@/components/shared/TableSkeleton";
+import { useUsuarios } from "./useUsuarios";
+import type { Usuario } from "@/types/usuario";
+
+const ROL_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
+  admin: "default",
+  operador: "secondary",
+  cajero: "outline",
+};
+
+const ROL_LABEL: Record<string, string> = {
+  admin: "Administrador",
+  operador: "Operador",
+  cajero: "Cajero",
+};
+
+function RolBadge({ rol }: { rol: string }) {
+  return <Badge variant={ROL_VARIANT[rol] ?? "outline"}>{ROL_LABEL[rol] ?? rol}</Badge>;
+}
 
 /**
- * Módulo Usuarios — BLOQUEADO por falta de endpoint real, no por falta
- * de tiempo de diseño.
+ * Módulo Usuarios — listado real vía GET /usuarios (Fase 1, reutiliza
+ * UsuarioOut/get_current_user ya existentes en el backend).
  *
- * El backend expone únicamente:
- *   POST /auth/usuarios  (crear — requiere rol admin)
- * No existe ningún GET que liste usuarios (app/routes/auth_routes.py
- * es el único router de auth/usuarios del backend, confirmado — no
- * hay app/routes/usuario_routes.py). Tampoco existe GET /auth/me.
- *
- * Por instrucción explícita ("No inventes endpoints. Usa únicamente
- * lo que el backend ya expone.") esta pantalla NO simula una tabla de
- * usuarios con datos falsos. En vez de la pantalla genérica de
- * "Coming Soon" de antes, esta es una versión honesta y específica:
- * explica exactamente qué falta y qué sí es real.
- *
- * Para desbloquear el listado de verdad, el backend necesita agregar
- * (uno de estos, no ambos):
- *   GET /usuarios          -> lista de UsuarioOut (el schema ya existe)
- * y opcionalmente:
- *   GET /usuarios/{id}/ultimo-acceso  -> si se quiere "último acceso"
- *   (hoy el modelo Usuario no guarda ese dato en ningún lado)
+ * Alcance real de esta entrega: SOLO listar. El backend todavía no
+ * expone editar/desactivar/cambiar rol/reset de contraseña para
+ * usuarios existentes — por instrucción explícita ("no inventes
+ * endpoints"), esta pantalla no ofrece esas acciones todavía. Crear
+ * usuario sí existe en el backend (POST /auth/usuarios), pero conectar
+ * ese formulario aquí necesita primero un GET /roles para poblar el
+ * selector de rol de forma real (hoy no existe) — se deja para la
+ * siguiente entrega de este módulo, no se improvisa una lista de roles
+ * hardcodeada que podría desincronizarse de la tabla `roles` real.
  */
 export function UsuariosPage() {
+  const { data: usuarios, isLoading, isError, error, refetch, isFetching } = useUsuarios({ limit: 100 });
+
+  const columnas: DataTableColumn<Usuario>[] = [
+    { header: "Nombre", cell: (u) => <span className="font-medium">{u.nombre}</span> },
+    { header: "Email", cell: (u) => u.email },
+    { header: "Rol", cell: (u) => <RolBadge rol={u.rol} /> },
+    { header: "Estado", cell: (u) => <EstadoBadge estado={u.activo ? "activo" : "inactivo"} /> },
+  ];
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       <PageHeader
         titulo="Usuarios"
-        descripcion="Administración de cuentas del sistema."
+        descripcion="Cuentas del sistema y sus roles."
         icon={UserCog}
         acento="wood"
       />
 
-      <Card>
-        <CardContent className="flex flex-col items-center gap-3 p-8 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-warning/12">
-            <ShieldAlert className="h-6 w-6 text-warning" />
-          </div>
-          <h2 className="font-display text-lg font-semibold">El listado real todavía no es posible</h2>
-          <p className="max-w-md text-sm text-muted-foreground">
-            El backend puede <strong>crear</strong> usuarios (<code className="text-xs">POST /auth/usuarios</code>,
-            solo administradores), pero no expone ningún endpoint para <strong>listarlos</strong>. Sin ese endpoint,
-            esta pantalla no puede mostrar una tabla real — y no se va a inventar una con datos falsos.
-          </p>
-          <div className="mt-1 rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-left text-xs text-muted-foreground">
-            <p className="font-medium text-foreground">Para desbloquear este módulo se necesita:</p>
-            <p className="mt-1">
-              Agregar <code>GET /usuarios</code> al backend (el schema <code>UsuarioOut</code> ya existe en
-              <code> app/schemas/auth.py</code> — solo falta la ruta). "Último acceso" necesitaría además guardar
-              esa fecha en el modelo, que hoy no la tiene.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {isLoading && <TableSkeleton columnas={4} />}
+
+      {isError && !isLoading && (
+        <ErrorState error={error} onRetry={() => refetch()} retrying={isFetching} />
+      )}
+
+      {!isLoading && !isError && (usuarios?.length ?? 0) === 0 && (
+        <EmptyState titulo="No hay usuarios registrados" icon={UserCog} />
+      )}
+
+      {!isLoading && !isError && usuarios && usuarios.length > 0 && (
+        <DataTable columns={columnas} data={usuarios} getRowId={(u) => u.id} />
+      )}
     </div>
   );
 }

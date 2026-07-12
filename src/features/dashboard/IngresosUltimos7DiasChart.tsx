@@ -21,19 +21,19 @@ export function IngresosUltimos7DiasChart() {
 
   return (
     <Card className="animate-fade-in-up" style={{ animationDelay: "240ms" }}>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <CardTitle className="text-base">Ingresos últimos 7 días</CardTitle>
         <CardDescription>
           {hace7dias} — {hoy}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading && <div className="skeleton-shimmer h-48 animate-shimmer rounded-lg" />}
+        {isLoading && <div className="skeleton-shimmer h-32 animate-shimmer rounded-lg" />}
 
         {!isLoading && datos.length === 0 && <EmptyState titulo="Sin ingresos en este rango" />}
 
         {!isLoading && datos.length > 0 && (
-          <div className="h-48 w-full">
+          <div className="h-32 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={datos}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />

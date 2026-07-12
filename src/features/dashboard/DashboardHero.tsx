@@ -16,10 +16,10 @@ interface DashboardHeroProps {
 const IMAGEN_HERO = "https://ejixhole-reservas.vercel.app/gallery/hero-principal.jpg";
 
 function IconoClima({ codigo }: { codigo: number }) {
-  if (codigo === 0 || codigo <= 3) return <Sun className="h-6 w-6 text-warning" />;
-  if (codigo <= 48) return <CloudFog className="h-6 w-6 text-muted-foreground" />;
-  if (codigo <= 82) return <CloudRain className="h-6 w-6 text-secondary" />;
-  return <Cloud className="h-6 w-6 text-muted-foreground" />;
+  if (codigo === 0 || codigo <= 3) return <Sun className="h-5 w-5 text-warning" />;
+  if (codigo <= 48) return <CloudFog className="h-5 w-5 text-muted-foreground" />;
+  if (codigo <= 82) return <CloudRain className="h-5 w-5 text-secondary" />;
+  return <Cloud className="h-5 w-5 text-muted-foreground" />;
 }
 
 /**
@@ -46,25 +46,25 @@ export function DashboardHero({ nombre }: DashboardHeroProps) {
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-black/5" />
 
-      <div className="relative z-10 flex min-h-[8rem] flex-col justify-end p-5 text-white sm:p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="relative z-10 flex min-h-[6rem] flex-col justify-end p-4 text-white sm:p-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-display text-2xl font-semibold sm:text-3xl">Hola, {nombre} 🌿</h1>
-            <p className="mt-0.5 text-sm text-white/85">
+            <h1 className="font-display text-xl font-semibold sm:text-2xl">Hola, {nombre} 🌿</h1>
+            <p className="mt-0.5 text-xs text-white/85">
               Todo listo para crear experiencias inolvidables en contacto con la naturaleza.
             </p>
           </div>
 
           {/* Clima real de El Naranjo, S.L.P. — Open-Meteo, sin API key */}
-          <div className="flex items-center gap-2.5 rounded-xl border border-white/20 bg-white/10 px-3.5 py-2 backdrop-blur-md">
+          <div className="flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-2.5 py-1.5 backdrop-blur-md">
             {cargandoClima || !clima ? (
               <>
-                <Sun className="h-6 w-6 animate-pulse text-white/50" />
+                <Sun className="h-5 w-5 animate-pulse text-white/50" />
                 <div>
-                  <p className="text-base font-semibold leading-none">
-                    {errorClima ? "—" : <span className="inline-block h-4 w-8 animate-pulse rounded bg-white/20" />}
+                  <p className="text-sm font-semibold leading-none">
+                    {errorClima ? "—" : <span className="inline-block h-3 w-7 animate-pulse rounded bg-white/20" />}
                   </p>
-                  <p className="text-[11px] text-white/75">
+                  <p className="text-[10px] text-white/75">
                     {errorClima ? "Clima no disponible" : "Cargando clima..."}
                   </p>
                 </div>
@@ -73,8 +73,8 @@ export function DashboardHero({ nombre }: DashboardHeroProps) {
               <>
                 <IconoClima codigo={clima.codigoClima} />
                 <div>
-                  <p className="text-base font-semibold leading-none">{clima.temperaturaC}°C</p>
-                  <p className="text-[11px] text-white/75">
+                  <p className="text-sm font-semibold leading-none">{clima.temperaturaC}°C</p>
+                  <p className="text-[10px] text-white/75">
                     {descripcionClima(clima.codigoClima)} · El Naranjo, S.L.P.
                   </p>
                 </div>
