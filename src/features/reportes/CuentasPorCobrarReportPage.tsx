@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ExportarCSVButton } from "@/components/shared/ExportarCSVButton";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { formatearMoneda } from "@/lib/format";
 import { useClientes } from "@/features/clientes/useClientes";
@@ -44,12 +45,15 @@ export function CuentasPorCobrarReportPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+<div>
         <h1 className="font-display text-2xl font-semibold">Cuentas por cobrar</h1>
         <p className="text-sm text-muted-foreground">
           Reservaciones activas con saldo pendiente, ordenadas de más antigua a más reciente. Es un
           snapshot del momento — no filtra por fecha.
         </p>
+      </div>
+        <ExportarCSVButton nombreArchivo="cuentas-por-cobrar" filas={(data?.items ?? []) as unknown as Record<string, unknown>[]} />
       </div>
 
       <div className="max-w-[220px] space-y-1">

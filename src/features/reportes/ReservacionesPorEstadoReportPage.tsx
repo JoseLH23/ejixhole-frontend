@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ExportarCSVButton } from "@/components/shared/ExportarCSVButton";
 import { useServicios } from "@/features/servicios/useServicios";
 import { ORIGENES_RESERVACION } from "@/types/reservacion";
 import { CHART_COLOR_POR_ESTADO, CHART_COLORS } from "@/lib/chartColors";
@@ -32,11 +33,14 @@ export function ReservacionesPorEstadoReportPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+<div>
         <h1 className="font-display text-2xl font-semibold">Reservaciones por estado</h1>
         <p className="text-sm text-muted-foreground">
           Conteo de reservaciones creadas en el periodo, por estado.
         </p>
+      </div>
+        <ExportarCSVButton nombreArchivo="reservaciones-por-estado" filas={(datosGrafica ?? []) as unknown as Record<string, unknown>[]} />
       </div>
 
       <div className="flex flex-wrap items-end gap-3">

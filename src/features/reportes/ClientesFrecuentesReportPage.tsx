@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ExportarCSVButton } from "@/components/shared/ExportarCSVButton";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { formatearMoneda } from "@/lib/format";
 import { PeriodoFilter, type PeriodoFiltroValue } from "./PeriodoFilter";
@@ -33,11 +34,14 @@ export function ClientesFrecuentesReportPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+<div>
         <h1 className="font-display text-2xl font-semibold">Clientes frecuentes</h1>
         <p className="text-sm text-muted-foreground">
           Clientes con más reservaciones en el periodo (excluye canceladas).
         </p>
+      </div>
+        <ExportarCSVButton nombreArchivo="clientes-frecuentes" filas={(data?.items ?? []) as unknown as Record<string, unknown>[]} />
       </div>
 
       <div className="flex flex-wrap items-end gap-3">

@@ -7,6 +7,7 @@ import { EstadoBadge } from "@/components/ui/badge";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ExportarCSVButton } from "@/components/shared/ExportarCSVButton";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { ESTADOS_RESERVACION } from "@/types/reservacion";
 import { ResumenStats } from "./ResumenStats";
@@ -32,11 +33,14 @@ export function ProximasReservacionesReportPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+<div>
         <h1 className="font-display text-2xl font-semibold">Próximas reservaciones</h1>
         <p className="text-sm text-muted-foreground">
           Reservaciones con fecha de visita próxima. No filtra por periodo — siempre parte de hoy.
         </p>
+      </div>
+        <ExportarCSVButton nombreArchivo="proximas-reservaciones" filas={(data?.items ?? []) as unknown as Record<string, unknown>[]} />
       </div>
 
       <div className="flex flex-wrap items-end gap-3">

@@ -3,6 +3,7 @@ import * as React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ExportarCSVButton } from "@/components/shared/ExportarCSVButton";
 import { formatearMoneda } from "@/lib/format";
 import { CHART_COLORS } from "@/lib/chartColors";
 import { useServicios } from "@/features/servicios/useServicios";
@@ -45,9 +46,12 @@ export function IngresosReportPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-semibold">Ingresos</h1>
-        <p className="text-sm text-muted-foreground">Ingresos, reembolsos y neto por periodo.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-semibold">Ingresos</h1>
+          <p className="text-sm text-muted-foreground">Ingresos, reembolsos y neto por periodo.</p>
+        </div>
+        <ExportarCSVButton nombreArchivo="ingresos" filas={serieNumerica as unknown as Record<string, unknown>[]} />
       </div>
 
       <div className="flex flex-wrap items-end gap-3">

@@ -3,6 +3,7 @@ import * as React from "react";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ExportarCSVButton } from "@/components/shared/ExportarCSVButton";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { PeriodoFilter, type PeriodoFiltroValue } from "./PeriodoFilter";
 import { ResumenStats } from "./ResumenStats";
@@ -21,11 +22,14 @@ export function CancelacionesReportPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+<div>
         <h1 className="font-display text-2xl font-semibold">Cancelaciones</h1>
         <p className="text-sm text-muted-foreground">
           Tasa de cancelación del periodo y desglose por servicio.
         </p>
+      </div>
+        <ExportarCSVButton nombreArchivo="cancelaciones" filas={(data?.desglose_por_servicio ?? []) as unknown as Record<string, unknown>[]} />
       </div>
 
       <PeriodoFilter value={filtroFecha} onChange={setFiltroFecha} />

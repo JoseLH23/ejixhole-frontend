@@ -3,6 +3,7 @@ import * as React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ExportarCSVButton } from "@/components/shared/ExportarCSVButton";
 import { ESTADOS_RESERVACION } from "@/types/reservacion";
 import { CHART_COLORS } from "@/lib/chartColors";
 import { PeriodoFilter, type PeriodoFiltroValue } from "./PeriodoFilter";
@@ -26,9 +27,12 @@ export function TendenciaReservacionesReportPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+<div>
         <h1 className="font-display text-2xl font-semibold">Tendencia de reservaciones</h1>
         <p className="text-sm text-muted-foreground">Número de reservaciones creadas por periodo.</p>
+      </div>
+        <ExportarCSVButton nombreArchivo="tendencia-reservaciones" filas={(data?.serie ?? []) as unknown as Record<string, unknown>[]} />
       </div>
 
       <div className="flex flex-wrap items-end gap-3">

@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ExportarCSVButton } from "@/components/shared/ExportarCSVButton";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { useServicios } from "@/features/servicios/useServicios";
 import { PeriodoFilter, type PeriodoFiltroValue } from "./PeriodoFilter";
@@ -37,12 +38,15 @@ export function OcupacionReportPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+<div>
         <h1 className="font-display text-2xl font-semibold">Ocupación</h1>
         <p className="text-sm text-muted-foreground">
           Porcentaje promedio de ocupación por reservación (no acumulado — un servicio con capacidad
           10 que siempre reserva 5 muestra 50%, sin importar cuántas veces se repita).
         </p>
+      </div>
+        <ExportarCSVButton nombreArchivo="ocupacion" filas={(data?.items ?? []) as unknown as Record<string, unknown>[]} />
       </div>
 
       <div className="flex flex-wrap items-end gap-3">

@@ -3,6 +3,7 @@ import * as React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ExportarCSVButton } from "@/components/shared/ExportarCSVButton";
 import { CHART_COLORS } from "@/lib/chartColors";
 import { PeriodoFilter, type PeriodoFiltroValue } from "./PeriodoFilter";
 import { ResumenStats } from "./ResumenStats";
@@ -21,9 +22,12 @@ export function ClientesNuevosReportPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+<div>
         <h1 className="font-display text-2xl font-semibold">Clientes nuevos</h1>
         <p className="text-sm text-muted-foreground">Clientes registrados por periodo.</p>
+      </div>
+        <ExportarCSVButton nombreArchivo="clientes-nuevos" filas={(data?.serie ?? []) as unknown as Record<string, unknown>[]} />
       </div>
 
       <div className="flex flex-wrap items-end gap-3">
