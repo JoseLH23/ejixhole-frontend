@@ -16,6 +16,10 @@ export const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  // ME-06 (auditoría de seguridad 13/jul/2026): sin timeout, una API
+  // colgada dejaba la pantalla esperando indefinidamente — el usuario
+  // podía reintentar y generar operaciones duplicadas.
+  timeout: 15_000,
 });
 
 const TOKEN_STORAGE_KEY = "ejixhole_token";
