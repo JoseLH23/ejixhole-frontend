@@ -20,8 +20,10 @@ export const pagosApi = {
     return response.data;
   },
 
-  crear: async (data: PagoCreateInput): Promise<Pago> => {
-    const response = await apiClient.post<Pago>("/pagos", data);
+  crear: async (data: PagoCreateInput, idempotencyKey?: string): Promise<Pago> => {
+    const response = await apiClient.post<Pago>("/pagos", data, {
+      headers: idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined,
+    });
     return response.data;
   },
 };

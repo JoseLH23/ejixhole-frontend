@@ -1,6 +1,8 @@
+import { useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { reservacionesApi, type ListarReservacionesParams } from "@/api/reservaciones";
+import { generarIdempotencyKey } from "@/lib/idempotencyKey";
 import type { EstadoReservacion, ReservacionCreateInput, ReservacionUpdateInput } from "@/types/reservacion";
 
 export const RESERVACIONES_QUERY_KEY = ["reservaciones"] as const;
@@ -15,10 +17,22 @@ export function useReservaciones(params: ListarReservacionesParams = {}) {
 
 export function useCrearReservacion() {
   const queryClient = useQueryClient();
+  // AL-04: la MISMA key se reutiliza mientras dure este intento (así
+  // un doble clic antes de que responda el servidor comparte la
+  // misma clave — el backend lo dedupe de verdad). Se renueva al
+  // terminar (éxito o error) para que el SIGUIENTE intento —ya sea
+  // una reservación distinta, o un reintento con datos corregidos
+  // tras un error de validación— no choque con la clave anterior.
+  const idempotencyKeyRef = useRef(generarIdempotencyKey());
+
   return useMutation({
-    mutationFn: (data: ReservacionCreateInput) => reservacionesApi.crear(data),
+    mutationFn: (data: ReservacionCreateInput) => reservacionesApi.crear(data, idempotencyKeyRef.current),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: RESERVACIONES_QUERY_KEY });
+      idempotencyKeyRef.current = generarIdempotencyKey();
+    },
+    onError: () => {
+      idempotencyKeyRef.current = generarIdempotencyKey();
     },
   });
 }

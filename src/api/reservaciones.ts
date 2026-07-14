@@ -23,8 +23,10 @@ export const reservacionesApi = {
     return response.data;
   },
 
-  crear: async (data: ReservacionCreateInput): Promise<Reservacion> => {
-    const response = await apiClient.post<Reservacion>("/reservaciones", data);
+  crear: async (data: ReservacionCreateInput, idempotencyKey?: string): Promise<Reservacion> => {
+    const response = await apiClient.post<Reservacion>("/reservaciones", data, {
+      headers: idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined,
+    });
     return response.data;
   },
 

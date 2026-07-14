@@ -1,6 +1,8 @@
+import { useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { pagosApi, type ListarPagosParams } from "@/api/pagos";
+import { generarIdempotencyKey } from "@/lib/idempotencyKey";
 import type { PagoCreateInput } from "@/types/pago";
 import { RESERVACIONES_QUERY_KEY } from "@/features/reservaciones/useReservaciones";
 
@@ -25,14 +27,22 @@ export function usePagosDeReservacion(reservacionId: number | null) {
 
 export function useRegistrarPago() {
   const queryClient = useQueryClient();
+  // AL-04: mismo patrón que useCrearReservacion — key estable durante
+  // el intento (dedupe real de doble clic), renovada tras terminar.
+  const idempotencyKeyRef = useRef(generarIdempotencyKey());
+
   return useMutation({
-    mutationFn: (data: PagoCreateInput) => pagosApi.crear(data),
+    mutationFn: (data: PagoCreateInput) => pagosApi.crear(data, idempotencyKeyRef.current),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PAGOS_QUERY_KEY });
       // Un pago cambia monto_pagado/saldo_pendiente/estado de la
       // reservación (lo calcula el backend) — hay que invalidar
       // también esa cache, no solo la de pagos.
       queryClient.invalidateQueries({ queryKey: RESERVACIONES_QUERY_KEY });
+      idempotencyKeyRef.current = generarIdempotencyKey();
+    },
+    onError: () => {
+      idempotencyKeyRef.current = generarIdempotencyKey();
     },
   });
 }
