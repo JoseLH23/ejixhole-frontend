@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { usuariosApi, type ListarUsuariosParams } from "@/api/usuarios";
-import type { UsuarioCreateInput } from "@/types/usuario";
+import type { UsuarioCreateInput, UsuarioRolUpdateInput } from "@/types/usuario";
 
 const USUARIOS_QUERY_KEY = ["usuarios"] as const;
 
@@ -35,6 +35,17 @@ export function useDesactivarUsuario() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => usuariosApi.desactivar(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: USUARIOS_QUERY_KEY });
+    },
+  });
+}
+
+export function useActualizarRolUsuario() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UsuarioRolUpdateInput }) =>
+      usuariosApi.actualizarRol(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: USUARIOS_QUERY_KEY });
     },

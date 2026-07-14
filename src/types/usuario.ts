@@ -21,3 +21,8 @@ export interface UsuarioCreateInput {
   password: string;
   rol_id: number;
 }
+
+/** PATCH /usuarios/{id}/rol — editar el rol de un usuario existente. */
+export interface UsuarioRolUpdateInput {
+  rol_id: number;
+}

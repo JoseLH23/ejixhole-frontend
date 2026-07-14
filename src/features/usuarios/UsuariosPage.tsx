@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Plus, UserX, UserCog } from "lucide-react";
+import { Plus, UserX, UserCog, Pencil } from "lucide-react";
 
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/toast-provider";
 import { useErrorToast } from "@/hooks/useErrorToast";
 import { useUsuarios, useDesactivarUsuario } from "./useUsuarios";
 import { UsuarioFormModal } from "./UsuarioFormModal";
+import { EditarRolModal } from "./EditarRolModal";
 import type { Usuario } from "@/types/usuario";
 
 const ROL_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
@@ -33,12 +34,13 @@ function RolBadge({ rol }: { rol: string }) {
 
 /**
  * Módulo Usuarios — listar (GET /usuarios), crear (POST /auth/usuarios,
- * ya existía) y desactivar (DELETE /usuarios/{id}, protegido contra
- * dejar el sistema sin ningún admin activo). Reutiliza get_current_user,
+ * ya existía), desactivar (DELETE /usuarios/{id}) y editar rol
+ * (PATCH /usuarios/{id}/rol) — las tres protegidas contra dejar el
+ * sistema sin ningún admin activo. Reutiliza get_current_user,
  * UsuarioOut y el patrón de ConfirmDialog ya usado en Clientes/Servicios.
  *
- * Todavía no incluye: editar nombre/email/rol de un usuario existente,
- * ni reset de contraseña — el backend no los expone aún.
+ * Todavía no incluye: editar nombre/email, ni reset de contraseña —
+ * el backend no los expone aún.
  */
 export function UsuariosPage() {
   const { data: usuarios, isLoading, isError, error, refetch, isFetching } = useUsuarios({ limit: 100 });
@@ -48,6 +50,7 @@ export function UsuariosPage() {
 
   const [modalAbierto, setModalAbierto] = React.useState(false);
   const [usuarioDesactivar, setUsuarioDesactivar] = React.useState<Usuario | null>(null);
+  const [usuarioEditarRol, setUsuarioEditarRol] = React.useState<Usuario | null>(null);
 
   const confirmarDesactivar = () => {
     if (!usuarioDesactivar) return;
@@ -101,21 +104,32 @@ export function UsuariosPage() {
           data={usuarios}
           getRowId={(u) => u.id}
           renderAcciones={(u) => (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-destructive"
-              disabled={!u.activo}
-              onClick={() => setUsuarioDesactivar(u)}
-            >
-              <UserX className="mr-1 h-4 w-4" />
-              Desactivar
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" onClick={() => setUsuarioEditarRol(u)}>
+                <Pencil className="mr-1 h-4 w-4" />
+                Editar rol
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive"
+                disabled={!u.activo}
+                onClick={() => setUsuarioDesactivar(u)}
+              >
+                <UserX className="mr-1 h-4 w-4" />
+                Desactivar
+              </Button>
+            </div>
           )}
         />
       )}
 
       <UsuarioFormModal open={modalAbierto} onOpenChange={setModalAbierto} />
+
+      <EditarRolModal
+        usuario={usuarioEditarRol}
+        onOpenChange={(open) => !open && setUsuarioEditarRol(null)}
+      />
 
       <ConfirmDialog
         open={usuarioDesactivar !== null}

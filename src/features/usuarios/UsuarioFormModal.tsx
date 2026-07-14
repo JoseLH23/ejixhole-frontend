@@ -40,9 +40,8 @@ interface UsuarioFormModalProps {
 }
 
 /**
- * Solo crea — no existe (todavía) un PUT /usuarios/{id} en el backend
- * para editar nombre/email/rol de un usuario existente. "Desactivar"
- * se maneja aparte, directo desde la tabla (ver UsuariosPage.tsx).
+ * Solo crea. Editar rol y desactivar se manejan aparte, directo desde
+ * la tabla (ver UsuariosPage.tsx / EditarRolModal.tsx).
  */
 export function UsuarioFormModal({ open, onOpenChange }: UsuarioFormModalProps) {
   const { toast } = useToast();
