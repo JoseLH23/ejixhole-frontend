@@ -1,121 +1,170 @@
-# EjiXhole Experience OS — Frontend (React)
+# EjiXhole Experience OS — Frontend
 
-Portal de administración. Ver `docs/frontend-diseno.md` (arquitectura
-completa aprobada), `docs/entrega-1.md` (infraestructura), `docs/entrega-2.md`
-(Dashboard real), `docs/entrega-3a.md` (infraestructura CRUD + Clientes),
-`docs/entrega-3b.md` (Servicios), `docs/entrega-3c.md` (Reservaciones),
-`docs/entrega-3d.md` (Pagos), `docs/entrega-3e.md` (Caja),
-`docs/entrega-3f.md` (Reportes), `docs/entrega-4-pulido.md` (pulido UX)
-`docs/entrega-5-premium-ui.md` (branding e identidad visual premium)
-y `docs/entrega-6-rediseno-radical.md` (rediseño estructural completo).
-Ver también `docs/entrega-7-dashboard.md` (Dashboard reconstruido desde cero, con fotografía real del parque) y `docs/entrega-8-dashboard-operativo.md` (Dashboard operativo siguiendo referencia visual exacta). Ver `docs/entrega-9-correcciones-build-real.md` para las correcciones del primer `npm run build` real + Sidebar/Topbar finales.
+Panel administrativo del ecosistema EjiXhole. Permite operar clientes,
+servicios, reservaciones, pagos, caja, usuarios, dashboard y reportes
+desde una interfaz web protegida por autenticación y permisos por rol.
 
-## Requisitos
+## Estado
 
-- Node.js 18+
-- El backend de EjiXhole corriendo (ver el repo `Ejixhole-Backend`)
+Proyecto en **preproducción**. Los módulos principales ya están conectados
+al backend real y actualmente se encuentra en etapa de estabilización,
+pruebas integrales y pulido de experiencia de usuario.
 
-## Instalación
+## Tecnologías
 
-```bash
+- React 18
+- TypeScript
+- Vite
+- React Router
+- TanStack Query
+- Axios
+- React Hook Form
+- Zod
+- Tailwind CSS
+- Radix UI
+- Recharts
+
+## Módulos disponibles
+
+- Inicio de sesión y sesión JWT
+- Permisos por rol
+- Dashboard operativo
+- Clientes
+- Servicios
+- Reservaciones
+- Pagos
+- Caja
+- Diez reportes con exportación CSV
+- Usuarios: listar, crear y desactivar
+
+## Roles
+
+- `admin`: acceso completo
+- `operador`: clientes, reservaciones y caja
+- `cajero`: pagos y caja
+
+La interfaz aplica guards de rutas, pero el backend sigue siendo la fuente
+definitiva de autorización.
+
+## Arquitectura
+
+```text
+src/
+├── api/          clientes HTTP por módulo
+├── components/   interfaz compartida y layout
+├── context/      sesión y estado global
+├── features/     módulos de negocio
+├── hooks/        lógica reutilizable
+├── lib/          utilidades y formatos
+├── router/       rutas y permisos
+├── types/        contratos TypeScript
+└── pages/        páginas generales
+```
+
+Los módulos se cargan bajo demanda mediante `React.lazy` para reducir el
+peso inicial de la aplicación.
+
+## Instalación local
+
+```powershell
+git clone https://github.com/JoseLH23/ejixhole-frontend.git
+cd ejixhole-frontend
+
 npm install
-cp .env.example .env
-# Edita .env si tu backend no corre en http://localhost:8000
+Copy-Item .env.example .env
 npm run dev
 ```
 
-Abre `http://localhost:5173`.
+La aplicación local se abre normalmente en:
 
-## ⚠️ Nota importante sobre esta entrega
+```text
+http://localhost:5173
+```
 
-Este proyecto se escribió en un entorno sin acceso al registro de npm
-(no se pudo ejecutar `npm install` ni `tsc` con las dependencias
-reales para validar). Se revisó manualmente cada archivo y se corrió
-`tsc --noEmit` de forma parcial (sin poder resolver los paquetes) para
-atrapar errores de sintaxis. Antes de construir el siguiente módulo:
+## Configuración
 
-```bash
-npm install
+En `.env` configura el backend:
+
+```env
+VITE_API_URL=http://127.0.0.1:8000
+```
+
+En producción debe apuntar al dominio real de la API.
+
+## Compilación
+
+```powershell
 npm run build
 ```
 
-Si `tsc -b` marca algún error real (no relacionado a paquetes
-faltantes, que no debería pasar tras `npm install`), avísame el
-mensaje exacto — mismo protocolo que usamos con el backend.
+Este comando ejecuta TypeScript y después genera el paquete de producción
+con Vite.
 
-## Identidad visual (Entrega 5)
+## Flujo de autenticación
 
-Sistema de diseño completo en variables CSS (`src/index.css` +
-`tailwind.config.js`) — ningún color está hardcodeado en componentes
-(única excepción documentada: `src/lib/chartColors.ts`, porque
-Recharts pinta con SVG y necesita strings literales, no `hsl(var(--x))`).
+1. El usuario inicia sesión.
+2. El frontend conserva la sesión actual.
+3. Axios agrega el token a las solicitudes.
+4. Los guards controlan la navegación visible.
+5. El backend valida nuevamente el token y el rol.
 
-- **Primary** — verde selva (marca, navegación activa, botones principales)
-- **Secondary** — turquesa agua (datos, acentos de gráficas)
-- **Accent** — beige madera (fondos sutiles de hover)
-- **Wood** — madera saturada (acentos puntuales)
-- **Success / Warning / Destructive** — semánticos, usados en botones, badges y toasts
-- **Surface** — superficie elevada, distinta del fondo general
+## Funciones destacadas
 
-Ver `docs/entrega-5-premium-ui.md` para el detalle completo.
+### Reservaciones
 
-## Estructura
+- Listado y búsqueda
+- Creación y edición
+- Cambio de estado
+- Cancelación
+- Integración con clientes, servicios y pagos
 
-Ver `docs/frontend-diseno.md` sección 2 para el árbol completo
-explicado. Resumen rápido:
+### Caja y pagos
 
-- `src/api/` — un archivo por módulo del backend, funciones puras de HTTP.
-- `src/context/AuthContext.tsx` — sesión, login/logout, restauración de token.
-- `src/router/` — rutas, guards (`RequireAuth`, `RequireRole`), navegación.
-- `src/components/ui/` — primitivos shadcn/ui (escritos a mano, ver nota abajo).
-- `src/components/shared/` — infraestructura CRUD reutilizable: `DataTable`, `ConfirmDialog`, `EmptyState`, `ErrorState`, `TableSkeleton`.
-- `src/components/layout/` — Sidebar, Topbar, AppShell.
-- `src/lib/format.ts` — formateadores compartidos (moneda, etc.) — nunca se duplican por módulo.
-- `src/features/` — un folder por módulo de negocio: `auth/`, `dashboard/`, `clientes/`, `servicios/`.
-- `src/pages/` — páginas que no pertenecen a un módulo específico (404, no autorizado, placeholders).
+- Apertura y cierre de caja
+- Registro de movimientos
+- Historial de sesiones
+- Registro de anticipos, saldos, pagos completos y reembolsos
 
-## Nota sobre shadcn/ui
+### Reportes
 
-Los componentes en `src/components/ui/` se escribieron a mano
-siguiendo exactamente los patrones oficiales de shadcn/ui, porque no
-hay acceso a `npx shadcn@latest add ...` en el entorno donde se generó
-esto. Una vez que tengas `npm install` corrido, puedes usar el CLI
-normalmente para agregar los que falten (Select, Toast con Radix,
-etc.):
+Incluye diez reportes operativos con filtros, tablas, gráficas y exportación
+CSV:
 
-```bash
-npx shadcn@latest add select
-```
+- ingresos
+- cuentas por cobrar
+- ocupación
+- servicios más vendidos
+- clientes frecuentes
+- reservaciones por estado
+- cancelaciones
+- tendencia de reservaciones
+- clientes nuevos
+- próximas reservaciones
 
-`components.json` ya está configurado para que el CLI los coloque en
-el lugar correcto.
+## Documentación interna
 
-## Qué ya funciona
+La carpeta `docs/` conserva el historial de diseño, entregas, decisiones de
+interfaz y rediseños realizados durante el desarrollo.
 
-- Login, sesión JWT, protección de rutas por rol.
-- Dashboard real (`/dashboard/resumen`).
-- Clientes: listar, buscar, crear, editar, desactivar.
-- Servicios: listar, buscar, crear, editar, desactivar.
-- Reservaciones: listar (filtros reales), buscar, crear, cambiar estado, cancelar.
-- Pagos: bitácora general, historial por reservación, registrar (incluye reembolsos), integrado desde Reservaciones.
-- Caja: abrir, cerrar (con confirmación), registrar movimientos, mi caja actual, historial.
-- Reportes: los 10 reportes existentes en el backend, con filtros de fecha reutilizables, tablas y 3 gráficas de línea + 1 de barras.
+## Pendientes principales
 
-## Qué falta (a propósito, por entregas)
+1. Añadir pruebas unitarias de formularios, permisos y utilidades.
+2. Añadir pruebas end-to-end de los flujos críticos.
+3. Validar expiración de sesión y errores de red.
+4. Mejorar accesibilidad por teclado, foco y contraste.
+5. Completar administración de usuarios: editar, reactivar y restablecer
+   contraseña cuando el backend exponga esas operaciones.
+6. Ejecutar una prueba completa desde reservación hasta pago, caja y reporte.
+7. Configurar integración continua con GitHub Actions.
 
-Usuarios (admin) — la ruta ya navega y respeta permisos por rol, pero
-muestra "Próximamente" hasta su entrega.
+## Relación con el ecosistema
 
-## Limitaciones reales heredadas del backend (documentadas, no ocultas)
+- Consume `C-Ejixhole-Backend`.
+- Comparte la operación con el portal público `ejixhole-reservas`.
+- En una fase posterior recibirá recomendaciones de MH-Core mediante el
+  backend, sin conectarse directamente al núcleo de inteligencia.
 
-1. **No se pueden editar los datos de una reservación** — solo cambiar
-   su estado. Ver `docs/entrega-3c.md`.
-2. **El rol `cajero` no puede listar reservaciones**, aunque sí tiene
-   acceso a Pagos — `/pagos` cae a un campo de ID manual cuando esto
-   pasa. Ver `docs/entrega-3d.md`.
-3. **El JWT no trae el `usuario_id` numérico** — se pide una vez y se
-   cachea en el navegador (`useUsuarioIdTemporal`), reutilizado en
-   Reservaciones, Pagos y ahora Caja (tercera reutilización).
-4. **No existe un endpoint dedicado para "mi caja actual"** — se
-   resuelve con el filtro real `GET /caja?usuario_id=X&estado=abierta`
-   que el backend sí soporta. Ver `docs/entrega-3e.md`.
+## Documentación maestra
+
+La visión, arquitectura y roadmap general se mantienen en el repositorio
+privado `MH-Ecosystem`.
