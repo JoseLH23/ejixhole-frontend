@@ -1,16 +1,11 @@
-name: Frontend CI
+﻿name: Frontend CI
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch:cd C:\ejixhole-frontend
-
-git status
-git add .github/workflows/frontend-ci.yml
-git commit -m "Configurar CI del frontend"
-git push origin main
+  workflow_dispatch:
 
 permissions:
   contents: read
