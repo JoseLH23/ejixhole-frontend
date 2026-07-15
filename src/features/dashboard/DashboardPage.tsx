@@ -10,6 +10,7 @@ import { useDashboardResumen } from "./useDashboard";
 import { DashboardHero } from "./DashboardHero";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { DashboardSidePanel } from "./DashboardSidePanel";
+import { DashboardWorkspace, type DashboardWidget } from "./DashboardWorkspace";
 import { KpiRowCard } from "./KpiRowCard";
 import { ResumenMensualCard } from "./ResumenMensualCard";
 import { ServiciosMasVendidosPanel } from "./ServiciosMasVendidosPanel";
@@ -20,17 +21,6 @@ import { IngresosUltimos7DiasChart } from "./IngresosUltimos7DiasChart";
 import { obtenerIconoTarjeta } from "./dashboardIcons";
 import { nombreVisible } from "@/lib/nombreUsuario";
 
-/**
- * KPIs de la fila principal — 4 tarjetas reales de /dashboard/resumen.
- *
- * Nota de honestidad importante: la referencia visual pedía
- * "Visitantes hoy" y "Caja actual", pero NINGUNA de las 2 existe en
- * /dashboard/resumen (los 9 títulos reales son fijos, ver
- * app/services/dashboard_service.py del backend). Se sustituyeron por
- * los equivalentes reales más cercanos:
- *   "Visitantes hoy" → "Clientes nuevos (mes)" (única métrica real de personas)
- *   "Caja actual"    → "Diferencia de caja (hoy)" (única métrica real de caja en este endpoint)
- */
 const TITULOS_KPI_ROW = ["Clientes nuevos (mes)", "Reservaciones activas", "Ingresos hoy", "Diferencia de caja (hoy)"];
 
 export function DashboardPage() {
@@ -76,60 +66,79 @@ export function DashboardPage() {
     }
   })();
 
-  return (
-    <div className="space-y-3">
-      {/* Franja superior: "Parque Abierto" es decorativo — el backend no
-          tiene un concepto de "parque abierto/cerrado" en tiempo real,
-          solo si el servidor responde (eso ya se muestra abajo, real). */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">
-          <Circle className="h-2 w-2 fill-current" />
-          Parque Abierto
-        </span>
-        <span className="text-sm capitalize text-muted-foreground">{fechaFormateada}</span>
-      </div>
+  const widgets: DashboardWidget[] = [];
 
-      <DashboardHero nombre={nombre} />
-
-      {/* Fila de KPIs — 4 tarjetas reales uniformes */}
-      {kpisRow.length > 0 && (
+  if (kpisRow.length > 0) {
+    widgets.push({
+      id: "indicadores-principales",
+      titulo: "Indicadores principales",
+      contenido: (
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
           {kpisRow.map((tarjeta) => {
             const { icon, tinte } = obtenerIconoTarjeta(tarjeta.titulo);
             return <KpiRowCard key={tarjeta.titulo} tarjeta={tarjeta} icon={icon} tinte={tinte} />;
           })}
         </div>
-      )}
+      ),
+    });
+  }
 
-      {/* Cuerpo en 3 columnas (12 cols): actividad + próximas + panel derecho.
-          Actividad/Próximas dependen de Reportes (admin-only) — para
-          operador/cajero se omiten con honestidad, no se rellenan con
-          datos falsos. */}
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
-        <div className="min-w-0 space-y-3 lg:col-span-4">{esAdmin && <ActividadReciente />}</div>
-        <div className="min-w-0 space-y-3 lg:col-span-5">{esAdmin && <ProximasReservacionesCards />}</div>
-        <div className="min-w-0 space-y-3 lg:col-span-3">
-          <DashboardSidePanel ultimaActualizacion={dataUpdatedAt} />
-          <ResumenMensualCard tarjeta={ingresosDelMes} />
-          {esAdmin && <ServiciosMasVendidosPanel />}
-        </div>
+  widgets.push({
+    id: "estado-operativo",
+    titulo: "Estado operativo",
+    contenido: (
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <DashboardSidePanel ultimaActualizacion={dataUpdatedAt} />
+        <ResumenMensualCard tarjeta={ingresosDelMes} />
+        {esAdmin ? <ServiciosMasVendidosPanel /> : <div className="hidden lg:block" />}
+      </div>
+    ),
+  });
+
+  if (esAdmin) {
+    widgets.push(
+      {
+        id: "actividad-reciente",
+        titulo: "Actividad reciente",
+        contenido: <ActividadReciente />,
+      },
+      {
+        id: "proximas-reservaciones",
+        titulo: "Próximas reservaciones",
+        contenido: <ProximasReservacionesCards />,
+      },
+      {
+        id: "reservaciones-por-estado",
+        titulo: "Reservaciones por estado",
+        contenido: <ReservacionesPorEstadoChart />,
+      },
+      {
+        id: "ingresos-ultimos-dias",
+        titulo: "Ingresos de los últimos 7 días",
+        contenido: <IngresosUltimos7DiasChart />,
+      }
+    );
+  }
+
+  const scopeUsuario = usuario?.email?.toLowerCase() || "usuario";
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">
+          <Circle className="h-2 w-2 fill-current" />
+          Sistema operativo
+        </span>
+        <span className="text-sm capitalize text-muted-foreground">{fechaFormateada}</span>
       </div>
 
-      {/* Sección inferior — también depende de Reportes, admin-only. */}
-      {esAdmin && (
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-          <div className="min-w-0">
-            <ReservacionesPorEstadoChart />
-          </div>
-          <div className="min-w-0">
-            <IngresosUltimos7DiasChart />
-          </div>
-        </div>
-      )}
+      <DashboardHero nombre={nombre} />
+
+      <DashboardWorkspace widgets={widgets} storageScope={scopeUsuario} />
 
       {!esAdmin && (
         <p className={cn("text-center text-xs text-muted-foreground")}>
-          Algunas secciones (actividad, próximas reservaciones, reportes) requieren rol de administrador.
+          Algunas secciones (actividad, próximas reservaciones y reportes) requieren rol de administrador.
         </p>
       )}
     </div>
