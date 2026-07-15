@@ -72,6 +72,10 @@ export function DashboardPage() {
     widgets.push({
       id: "indicadores-principales",
       titulo: "Indicadores principales",
+      descripcion: "Resumen rápido de clientes, reservaciones, ingresos y caja.",
+      categoria: "Dirección",
+      tamanosPermitidos: ["grande"],
+      tamanoInicial: "grande",
       contenido: (
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
           {kpisRow.map((tarjeta) => {
@@ -86,6 +90,10 @@ export function DashboardPage() {
   widgets.push({
     id: "estado-operativo",
     titulo: "Estado operativo",
+    descripcion: "Estado del sistema, resumen mensual y servicios con mayor movimiento.",
+    categoria: "Operación",
+    tamanosPermitidos: ["grande"],
+    tamanoInicial: "grande",
     contenido: (
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         <DashboardSidePanel ultimaActualizacion={dataUpdatedAt} />
@@ -100,21 +108,37 @@ export function DashboardPage() {
       {
         id: "actividad-reciente",
         titulo: "Actividad reciente",
+        descripcion: "Últimos movimientos importantes registrados en el sistema.",
+        categoria: "Operación",
+        tamanosPermitidos: ["mediano", "grande"],
+        tamanoInicial: "mediano",
         contenido: <ActividadReciente />,
       },
       {
         id: "proximas-reservaciones",
         titulo: "Próximas reservaciones",
+        descripcion: "Llegadas y visitas próximas que necesitan preparación.",
+        categoria: "Reservaciones",
+        tamanosPermitidos: ["mediano", "grande"],
+        tamanoInicial: "mediano",
         contenido: <ProximasReservacionesCards />,
       },
       {
         id: "reservaciones-por-estado",
         titulo: "Reservaciones por estado",
+        descripcion: "Distribución actual de reservaciones según su estado.",
+        categoria: "Reportes",
+        tamanosPermitidos: ["mediano", "grande"],
+        tamanoInicial: "mediano",
         contenido: <ReservacionesPorEstadoChart />,
       },
       {
         id: "ingresos-ultimos-dias",
         titulo: "Ingresos de los últimos 7 días",
+        descripcion: "Tendencia reciente de ingresos para detectar cambios rápidamente.",
+        categoria: "Finanzas",
+        tamanosPermitidos: ["mediano", "grande"],
+        tamanoInicial: "mediano",
         contenido: <IngresosUltimos7DiasChart />,
       }
     );
