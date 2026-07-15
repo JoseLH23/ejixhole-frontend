@@ -11,6 +11,7 @@ import { ErrorState } from "@/components/shared/ErrorState";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { useToast } from "@/components/ui/toast-provider";
 import { useErrorToast } from "@/hooks/useErrorToast";
+import { useAuth } from "@/context/AuthContext";
 import { useUsuarios, useDesactivarUsuario } from "./useUsuarios";
 import { UsuarioFormModal } from "./UsuarioFormModal";
 import { EditarRolModal } from "./EditarRolModal";
@@ -45,6 +46,7 @@ function RolBadge({ rol }: { rol: string }) {
 export function UsuariosPage() {
   const { data: usuarios, isLoading, isError, error, refetch, isFetching } = useUsuarios({ limit: 100 });
   const desactivar = useDesactivarUsuario();
+  const { usuario: usuarioActual } = useAuth();
   const { toast } = useToast();
   const mostrarError = useErrorToast();
 
@@ -105,7 +107,17 @@ export function UsuariosPage() {
           getRowId={(u) => u.id}
           renderAcciones={(u) => (
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" onClick={() => setUsuarioEditarRol(u)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={u.email === usuarioActual?.email}
+                title={
+                  u.email === usuarioActual?.email
+                    ? "No puedes cambiar tu propio rol — inicia sesión con otra cuenta admin"
+                    : undefined
+                }
+                onClick={() => setUsuarioEditarRol(u)}
+              >
                 <Pencil className="mr-1 h-4 w-4" />
                 Editar rol
               </Button>
