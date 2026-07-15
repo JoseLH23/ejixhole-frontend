@@ -21,6 +21,9 @@ import { UnauthorizedPage } from "@/pages/UnauthorizedPage";
 const DashboardPage = React.lazy(() =>
   import("@/features/dashboard/DashboardPage").then((m) => ({ default: m.DashboardPage }))
 );
+const CalendarioOperativoPage = React.lazy(() =>
+  import("@/features/calendario/CalendarioOperativoPage").then((m) => ({ default: m.CalendarioOperativoPage }))
+);
 const ClientesListPage = React.lazy(() =>
   import("@/features/clientes/ClientesListPage").then((m) => ({ default: m.ClientesListPage }))
 );
@@ -49,35 +52,25 @@ const OcupacionReportPage = React.lazy(() =>
   import("@/features/reportes/OcupacionReportPage").then((m) => ({ default: m.OcupacionReportPage }))
 );
 const ServiciosMasVendidosReportPage = React.lazy(() =>
-  import("@/features/reportes/ServiciosMasVendidosReportPage").then((m) => ({
-    default: m.ServiciosMasVendidosReportPage,
-  }))
+  import("@/features/reportes/ServiciosMasVendidosReportPage").then((m) => ({ default: m.ServiciosMasVendidosReportPage }))
 );
 const ClientesFrecuentesReportPage = React.lazy(() =>
-  import("@/features/reportes/ClientesFrecuentesReportPage").then((m) => ({
-    default: m.ClientesFrecuentesReportPage,
-  }))
+  import("@/features/reportes/ClientesFrecuentesReportPage").then((m) => ({ default: m.ClientesFrecuentesReportPage }))
 );
 const ReservacionesPorEstadoReportPage = React.lazy(() =>
-  import("@/features/reportes/ReservacionesPorEstadoReportPage").then((m) => ({
-    default: m.ReservacionesPorEstadoReportPage,
-  }))
+  import("@/features/reportes/ReservacionesPorEstadoReportPage").then((m) => ({ default: m.ReservacionesPorEstadoReportPage }))
 );
 const CancelacionesReportPage = React.lazy(() =>
   import("@/features/reportes/CancelacionesReportPage").then((m) => ({ default: m.CancelacionesReportPage }))
 );
 const TendenciaReservacionesReportPage = React.lazy(() =>
-  import("@/features/reportes/TendenciaReservacionesReportPage").then((m) => ({
-    default: m.TendenciaReservacionesReportPage,
-  }))
+  import("@/features/reportes/TendenciaReservacionesReportPage").then((m) => ({ default: m.TendenciaReservacionesReportPage }))
 );
 const ClientesNuevosReportPage = React.lazy(() =>
   import("@/features/reportes/ClientesNuevosReportPage").then((m) => ({ default: m.ClientesNuevosReportPage }))
 );
 const ProximasReservacionesReportPage = React.lazy(() =>
-  import("@/features/reportes/ProximasReservacionesReportPage").then((m) => ({
-    default: m.ProximasReservacionesReportPage,
-  }))
+  import("@/features/reportes/ProximasReservacionesReportPage").then((m) => ({ default: m.ProximasReservacionesReportPage }))
 );
 const UsuariosPage = React.lazy(() =>
   import("@/features/usuarios/UsuariosPage").then((m) => ({ default: m.UsuariosPage }))
@@ -109,6 +102,7 @@ export function AppRouter() {
               </Route>
 
               <Route element={<RequireRole roles={["admin"]} />}>
+                <Route path="/calendario" element={<CalendarioOperativoPage />} />
                 <Route path="/servicios" element={<ServiciosListPage />} />
                 <Route path="/reportes" element={<ReportesHubPage />} />
                 <Route path="/reportes/ingresos" element={<IngresosReportPage />} />

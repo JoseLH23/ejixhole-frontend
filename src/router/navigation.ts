@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Users,
   CalendarCheck,
+  CalendarDays,
   Package,
   Wallet,
   Landmark,
@@ -23,6 +24,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: ["admin", "operador", "cajero"], grupo: "Principal" },
+  { label: "Calendario", path: "/calendario", icon: CalendarDays, roles: ["admin"], grupo: "Principal" },
   { label: "Clientes", path: "/clientes", icon: Users, roles: ["admin", "operador"], grupo: "Operación" },
   { label: "Reservaciones", path: "/reservaciones", icon: CalendarCheck, roles: ["admin", "operador"], grupo: "Operación" },
   { label: "Servicios", path: "/servicios", icon: Package, roles: ["admin"], grupo: "Operación" },
