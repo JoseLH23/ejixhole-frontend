@@ -17,12 +17,11 @@ export function useReservaciones(params: ListarReservacionesParams = {}) {
 
 export function useCrearReservacion() {
   const queryClient = useQueryClient();
-  // AL-04: la MISMA key se reutiliza mientras dure este intento (así
-  // un doble clic antes de que responda el servidor comparte la
-  // misma clave — el backend lo dedupe de verdad). Se renueva al
-  // terminar (éxito o error) para que el SIGUIENTE intento —ya sea
-  // una reservación distinta, o un reintento con datos corregidos
-  // tras un error de validación— no choque con la clave anterior.
+  // AL-04: la key permanece estable hasta que el backend confirme éxito.
+  // Ante timeout, pérdida de red o error 5xx no sabemos si la operación
+  // alcanzó a guardarse; reutilizar la misma key permite recuperar el
+  // resultado original y evita crear una segunda reservación.
+  // Si la operación falla realmente, el backend libera la key.
   const idempotencyKeyRef = useRef(generarIdempotencyKey());
 
   return useMutation({
@@ -31,9 +30,9 @@ export function useCrearReservacion() {
       queryClient.invalidateQueries({ queryKey: RESERVACIONES_QUERY_KEY });
       idempotencyKeyRef.current = generarIdempotencyKey();
     },
-    onError: () => {
-      idempotencyKeyRef.current = generarIdempotencyKey();
-    },
+    // No renovar en onError: el resultado puede ser incierto. El próximo
+    // intento debe conservar la misma identidad para que el backend
+    // deduplique o devuelva la respuesta ya guardada.
   });
 }
 
