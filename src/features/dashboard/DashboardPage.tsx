@@ -106,6 +106,15 @@ export function DashboardPage() {
   if (esAdmin) {
     widgets.push(
       {
+        id: "agenda-operativa",
+        titulo: "Agenda operativa",
+        descripcion: "Llegadas confirmadas agrupadas por día para preparar la operación.",
+        categoria: "Calendario",
+        tamanosPermitidos: ["mediano", "grande"],
+        tamanoInicial: "mediano",
+        contenido: <ProximasReservacionesCards />,
+      },
+      {
         id: "actividad-reciente",
         titulo: "Actividad reciente",
         descripcion: "Últimos movimientos importantes registrados en el sistema.",
@@ -113,15 +122,6 @@ export function DashboardPage() {
         tamanosPermitidos: ["mediano", "grande"],
         tamanoInicial: "mediano",
         contenido: <ActividadReciente />,
-      },
-      {
-        id: "proximas-reservaciones",
-        titulo: "Próximas reservaciones",
-        descripcion: "Llegadas y visitas próximas que necesitan preparación.",
-        categoria: "Reservaciones",
-        tamanosPermitidos: ["mediano", "grande"],
-        tamanoInicial: "mediano",
-        contenido: <ProximasReservacionesCards />,
       },
       {
         id: "reservaciones-por-estado",
@@ -162,7 +162,7 @@ export function DashboardPage() {
 
       {!esAdmin && (
         <p className={cn("text-center text-xs text-muted-foreground")}>
-          Algunas secciones (actividad, próximas reservaciones y reportes) requieren rol de administrador.
+          Algunas secciones (actividad, agenda operativa y reportes) requieren rol de administrador.
         </p>
       )}
     </div>
