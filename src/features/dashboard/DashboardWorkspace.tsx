@@ -34,6 +34,13 @@ interface LayoutPersistido {
   tamanos: Record<string, DashboardWidgetSize>;
 }
 
+interface LayoutCrudo {
+  version?: number;
+  orden?: unknown;
+  ocultos?: unknown;
+  tamanos?: unknown;
+}
+
 interface DashboardWorkspaceProps {
   widgets: DashboardWidget[];
   storageScope: string;
@@ -76,7 +83,7 @@ function layoutBase(widgets: DashboardWidget[]): LayoutPersistido {
   };
 }
 
-function normalizarLayout(layout: Partial<LayoutPersistido>, widgets: DashboardWidget[]): LayoutPersistido {
+function normalizarLayout(layout: LayoutCrudo, widgets: DashboardWidget[]): LayoutPersistido {
   const base = layoutBase(widgets);
   const porId = new Map(widgets.map((widget) => [widget.id, widget]));
   const idsValidos = new Set(porId.keys());
@@ -85,13 +92,18 @@ function normalizarLayout(layout: Partial<LayoutPersistido>, widgets: DashboardW
   const faltantes = base.orden.filter((id) => !ordenValido.includes(id));
   const ocultosRecibidos = Array.isArray(layout.ocultos) ? layout.ocultos : [];
   const ocultos = ocultosRecibidos.filter((id): id is string => typeof id === "string" && idsValidos.has(id));
-  const tamanosRecibidos = layout.tamanos && typeof layout.tamanos === "object" ? layout.tamanos : {};
+  const tamanosRecibidos =
+    layout.tamanos && typeof layout.tamanos === "object" && !Array.isArray(layout.tamanos)
+      ? (layout.tamanos as Record<string, unknown>)
+      : {};
 
   const tamanos = Object.fromEntries(
     widgets.map((widget) => {
       const guardado = tamanosRecibidos[widget.id];
       const permitidos = tamanosPermitidos(widget);
-      return [widget.id, permitidos.includes(guardado) ? guardado : tamanoPorDefecto(widget)];
+      const esValido =
+        typeof guardado === "string" && permitidos.includes(guardado as DashboardWidgetSize);
+      return [widget.id, esValido ? (guardado as DashboardWidgetSize) : tamanoPorDefecto(widget)];
     })
   );
 
@@ -110,7 +122,7 @@ function cargarLayout(scope: string, widgets: DashboardWidget[]): LayoutPersisti
     const raw = localStorage.getItem(claveStorage(scope));
     if (!raw) return base;
 
-    const parsed = JSON.parse(raw) as Partial<LayoutPersistido> & { version?: number };
+    const parsed = JSON.parse(raw) as LayoutCrudo;
 
     // La versión 1 no guardaba tamaños. Se migra conservando orden y widgets ocultos.
     if (parsed.version === 1) {
