@@ -17,11 +17,6 @@ export function useReservaciones(params: ListarReservacionesParams = {}) {
 
 export function useCrearReservacion() {
   const queryClient = useQueryClient();
-  // AL-04: la key permanece estable hasta que el backend confirme éxito.
-  // Ante timeout, pérdida de red o error 5xx no sabemos si la operación
-  // alcanzó a guardarse; reutilizar la misma key permite recuperar el
-  // resultado original y evita crear una segunda reservación.
-  // Si la operación falla realmente, el backend libera la key.
   const idempotencyKeyRef = useRef(generarIdempotencyKey());
 
   return useMutation({
@@ -30,18 +25,9 @@ export function useCrearReservacion() {
       queryClient.invalidateQueries({ queryKey: RESERVACIONES_QUERY_KEY });
       idempotencyKeyRef.current = generarIdempotencyKey();
     },
-    // No renovar en onError: el resultado puede ser incierto. El próximo
-    // intento debe conservar la misma identidad para que el backend
-    // deduplique o devuelva la respuesta ya guardada.
   });
 }
 
-/**
- * Edita fechas, personas, servicio y/o notas de una reservación ya
- * creada — PUT /reservaciones/{id} (backend real, no inventado). No
- * cubre cambiar cliente/tipo/origen/estado: eso sigue sin existir a
- * propósito (ver ReservacionService.actualizar en el backend).
- */
 export function useActualizarReservacion() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -53,15 +39,31 @@ export function useActualizarReservacion() {
   });
 }
 
-/**
- * Cubre tanto "cambiar estado" como "cancelar" — cancelar es
- * exactamente esta misma mutación con `nuevo_estado: "cancelada"`.
- */
 export function useCambiarEstadoReservacion() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, nuevoEstado }: { id: number; nuevoEstado: EstadoReservacion }) =>
       reservacionesApi.cambiarEstado(id, { nuevo_estado: nuevoEstado }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RESERVACIONES_QUERY_KEY });
+    },
+  });
+}
+
+export function useCheckInReservacion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => reservacionesApi.checkIn(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RESERVACIONES_QUERY_KEY });
+    },
+  });
+}
+
+export function useCheckOutReservacion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => reservacionesApi.checkOut(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: RESERVACIONES_QUERY_KEY });
     },

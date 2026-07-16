@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 const ESTADOS_CON_COLOR = [
   "pendiente",
   "confirmada",
+  "en_curso",
   "completada",
   "cancelada",
   "activo",
@@ -27,10 +28,9 @@ const badgeVariants = cva(
         destructive: "border-transparent bg-destructive text-destructive-foreground",
         success: "border-transparent bg-success/15 text-success",
         warning: "border-transparent bg-warning/15 text-warning",
-        // Estados reales de los 8 módulos — mismo vocabulario que el
-        // backend (Reservaciones/Pagos, Clientes/Servicios, Caja).
         pendiente: "border-transparent bg-estado-pendiente/15 text-estado-pendiente",
         confirmada: "border-transparent bg-estado-confirmada/15 text-estado-confirmada",
+        en_curso: "border-transparent bg-secondary/15 text-secondary",
         completada: "border-transparent bg-estado-completada/15 text-estado-completada",
         cancelada: "border-transparent bg-estado-cancelada/15 text-estado-cancelada",
         activo: "border-transparent bg-estado-activo/15 text-estado-activo",
@@ -39,22 +39,20 @@ const badgeVariants = cva(
         cerrada: "border-transparent bg-estado-cerrada/15 text-estado-cerrada",
       },
     },
-    defaultVariants: {
-      variant: "default",
-    },
+    defaultVariants: { variant: "default" },
   }
 );
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof badgeVariants> {
-  /** Punto de color antes del texto — detalle premium, opcional. */
   dot?: boolean;
 }
 
 const DOT_COLOR_CLASS: Partial<Record<string, string>> = {
   pendiente: "bg-estado-pendiente",
   confirmada: "bg-estado-confirmada",
+  en_curso: "bg-secondary",
   completada: "bg-estado-completada",
   cancelada: "bg-estado-cancelada",
   activo: "bg-estado-activo",
@@ -79,13 +77,6 @@ function Badge({ className, variant, dot = false, children, ...props }: BadgePro
   );
 }
 
-/**
- * Mapea CUALQUIER estado real del sistema a su Badge con color
- * consistente — un solo lugar decide el color, usado en los 8
- * módulos: Reservaciones/Pagos (pendiente/confirmada/completada/
- * cancelada), Clientes/Servicios (activo/inactivo), Caja
- * (abierta/cerrada).
- */
 function EstadoBadge({ estado }: { estado: string }) {
   const variant = (ESTADOS_CON_COLOR as readonly string[]).includes(estado)
     ? (estado as EstadoConColor)
@@ -93,7 +84,7 @@ function EstadoBadge({ estado }: { estado: string }) {
 
   return (
     <Badge variant={variant} dot>
-      {estado}
+      {estado === "en_curso" ? "en curso" : estado}
     </Badge>
   );
 }

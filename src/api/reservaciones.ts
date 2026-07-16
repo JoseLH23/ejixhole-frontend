@@ -39,4 +39,14 @@ export const reservacionesApi = {
     const response = await apiClient.patch<Reservacion>(`/reservaciones/${id}/estado`, data);
     return response.data;
   },
+
+  checkIn: async (id: number): Promise<Reservacion> => {
+    const response = await apiClient.post<Reservacion>(`/reservaciones/${id}/check-in`);
+    return response.data;
+  },
+
+  checkOut: async (id: number): Promise<Reservacion> => {
+    const response = await apiClient.post<Reservacion>(`/reservaciones/${id}/check-out`);
+    return response.data;
+  },
 };
