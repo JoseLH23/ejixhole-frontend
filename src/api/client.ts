@@ -1,8 +1,16 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.PROD ? "/api" : import.meta.env.VITE_API_BASE_URL;
 const CSRF_COOKIE_NAME = "ejixhole_csrf";
 const METODOS_SEGUROS = new Set(["get", "head", "options"]);
+
+function conApiV1(base: string): string {
+  const normalizada = base.replace(/\/+$/, "");
+  return normalizada.endsWith("/api/v1") ? normalizada : `${normalizada}/api/v1`;
+}
+
+const API_BASE_URL = import.meta.env.PROD
+  ? "/api"
+  : conApiV1(import.meta.env.VITE_API_BASE_URL || "http://localhost:8000");
 
 function leerCookie(nombre: string): string | null {
   if (typeof document === "undefined") return null;
@@ -19,7 +27,8 @@ function leerCookie(nombre: string): string | null {
  *
  * La sesión viaja exclusivamente mediante cookie HttpOnly. JavaScript no
  * recibe, decodifica ni persiste el JWT. En producción `/api` se reescribe
- * desde Vercel hacia Render para que la cookie permanezca first-party.
+ * desde Vercel hacia `/api/v1` en Render para conservar una cookie first-party
+ * y usar siempre el contrato versionado.
  */
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
