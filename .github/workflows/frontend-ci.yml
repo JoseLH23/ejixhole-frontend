@@ -34,4 +34,7 @@ jobs:
         run: npm ci
 
       - name: Compilar proyecto
-        run: npm run build
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tail -n 120
