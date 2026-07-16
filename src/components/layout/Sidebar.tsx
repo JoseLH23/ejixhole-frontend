@@ -17,10 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Logo real de EjiXhole, ya publicado y verificado en producción
-// (ejixhole-reservas.vercel.app/logo.png — el mismo que usa el correo
-// HTML de notificaciones y el propio sitio público). Reemplaza el
-// ícono genérico de Lucide que había antes.
 const LOGO_URL = "https://ejixhole-reservas.vercel.app/logo.png?v=3";
 
 interface SidebarProps {
@@ -49,17 +45,6 @@ const NOMBRE_CORTO_SISTEMA: Record<string, string> = {
   frontend: "Frontend admin",
 };
 
-/**
- * Navegación agrupada + bloque de usuario/logout al final.
- *
- * La tarjeta de foto decorativa que había aquí (`/park/canoa.jpg`) se
- * quitó: la imagen no cargaba en producción (el archivo no existe
- * realmente desplegado, solo en la documentación de una entrega
- * anterior) y, aun si cargara, era exactamente el tipo de componente
- * grande-con-poco-contenido que se pidió eliminar. En su lugar, ese
- * espacio ahora muestra el estado real de los 3 sistemas — información
- * de verdad, no decoración.
- */
 export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarProps) {
   const { usuario, logout } = useAuth();
   const { sistemas } = useEstadoSistemas();
@@ -73,8 +58,8 @@ export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarPro
   const nombre = usuario ? usuario.nombre?.trim() || nombreVisible(usuario.email) : "";
   const sistemasCaidos = sistemas.filter((s) => s.estado !== "en_linea").length;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/login", { replace: true });
   };
 
@@ -112,7 +97,6 @@ export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarPro
           </button>
         </div>
 
-        {/* Disparador de la paleta de comandos — Ctrl+K real en Windows */}
         <div className="p-2.5">
           <button
             onClick={onAbrirPaleta}
@@ -162,7 +146,6 @@ export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarPro
           ))}
         </nav>
 
-        {/* Estado real de los 3 sistemas — reemplaza la tarjeta decorativa */}
         <div className="border-t border-border px-3 py-2.5">
           <p className="mb-1.5 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
             <span>Estado del sistema</span>
@@ -188,7 +171,6 @@ export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarPro
           </div>
         </div>
 
-        {/* Usuario + rol + logout */}
         {usuario && (
           <div className="border-t border-border p-2.5">
             <DropdownMenu>
@@ -213,7 +195,7 @@ export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarPro
                   </p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                <DropdownMenuItem onClick={() => void handleLogout()} className="text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
                   Cerrar sesión
                 </DropdownMenuItem>
