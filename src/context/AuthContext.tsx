@@ -88,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: "Revisa tu conexión e inténtalo nuevamente.",
         variant: "destructive",
       });
+      throw error;
     }
   }, [toast]);
 
