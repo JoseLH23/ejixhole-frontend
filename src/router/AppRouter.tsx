@@ -8,21 +8,14 @@ import { LoginPage } from "@/features/auth/LoginPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { UnauthorizedPage } from "@/pages/UnauthorizedPage";
 
-/**
- * Code-splitting por ruta (mejora de tiempo de carga): cada módulo se
- * descarga solo cuando el usuario navega ahí, en vez de bajar los 8
- * módulos completos (+ Recharts, usado en Dashboard y 4 reportes) de
- * golpe al iniciar sesión. `npm run build` avisaba de un bundle único
- * de ~1 MB — esto lo reparte en chunks bajo demanda.
- *
- * Login, AppShell y los guards de rutas quedan fuera del lazy-loading
- * a propósito: son pequeños y se necesitan de inmediato.
- */
 const DashboardPage = React.lazy(() =>
   import("@/features/dashboard/DashboardPage").then((m) => ({ default: m.DashboardPage }))
 );
 const CalendarioOperativoPage = React.lazy(() =>
   import("@/features/calendario/CalendarioOperativoPage").then((m) => ({ default: m.CalendarioOperativoPage }))
+);
+const TarifasEspecialesPage = React.lazy(() =>
+  import("@/features/tarifas/TarifasEspecialesPage").then((m) => ({ default: m.TarifasEspecialesPage }))
 );
 const ClientesListPage = React.lazy(() =>
   import("@/features/clientes/ClientesListPage").then((m) => ({ default: m.ClientesListPage }))
@@ -90,19 +83,17 @@ export function AppRouter() {
       <React.Suspense fallback={<CargandoModulo />}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-
           <Route element={<RequireAuth />}>
             <Route element={<AppShell />}>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/no-autorizado" element={<UnauthorizedPage />} />
-
               <Route element={<RequireRole roles={["admin", "operador"]} />}>
                 <Route path="/clientes" element={<ClientesListPage />} />
                 <Route path="/reservaciones" element={<ReservacionesListPage />} />
               </Route>
-
               <Route element={<RequireRole roles={["admin"]} />}>
                 <Route path="/calendario" element={<CalendarioOperativoPage />} />
+                <Route path="/tarifas" element={<TarifasEspecialesPage />} />
                 <Route path="/servicios" element={<ServiciosListPage />} />
                 <Route path="/reportes" element={<ReportesHubPage />} />
                 <Route path="/reportes/ingresos" element={<IngresosReportPage />} />
@@ -117,17 +108,14 @@ export function AppRouter() {
                 <Route path="/reportes/proximas-reservaciones" element={<ProximasReservacionesReportPage />} />
                 <Route path="/usuarios" element={<UsuariosPage />} />
               </Route>
-
               <Route element={<RequireRole roles={["admin", "cajero"]} />}>
                 <Route path="/pagos" element={<PagosListPage />} />
               </Route>
-
               <Route element={<RequireRole roles={["admin", "operador", "cajero"]} />}>
                 <Route path="/caja" element={<CajaPage />} />
               </Route>
             </Route>
           </Route>
-
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </React.Suspense>
