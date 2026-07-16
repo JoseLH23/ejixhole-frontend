@@ -108,7 +108,7 @@ export function PagoModal({ open, onOpenChange, reservacionId, reservacionContex
         onSuccess: () => {
           toast({
             title: values.tipo === "reembolso" ? "Reembolso registrado" : "Pago registrado",
-            descripcion:
+            description:
               values.metodo_pago === "efectivo"
                 ? "El movimiento también quedó registrado en la caja abierta."
                 : undefined,
