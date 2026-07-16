@@ -59,8 +59,12 @@ export function Sidebar({ abiertoEnMobile, onCerrar, onAbrirPaleta }: SidebarPro
   const sistemasCaidos = sistemas.filter((s) => s.estado !== "en_linea").length;
 
   const handleLogout = async () => {
-    await logout();
-    navigate("/login", { replace: true });
+    try {
+      await logout();
+      navigate("/login", { replace: true });
+    } catch {
+      // AuthContext ya mostró el error; la pantalla permanece autenticada.
+    }
   };
 
   return (
