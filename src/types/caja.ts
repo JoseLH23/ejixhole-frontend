@@ -20,7 +20,6 @@ export interface CajaSesion {
   notas: string | null;
 }
 
-/** CajaMovimientoOut NO incluye usuario_id (aunque el modelo sí lo tiene) — confirmado en app/schemas/caja.py. */
 export interface CajaMovimiento {
   id: number;
   caja_sesion_id: number;
@@ -31,8 +30,6 @@ export interface CajaMovimiento {
 }
 
 export interface CajaAbrirInput {
-  /** Temporal, misma limitación que en Reservaciones/Pagos — ver docs/entrega-3e.md. */
-  usuario_id: number;
   monto_apertura: string;
 }
 
@@ -41,7 +38,6 @@ export interface CajaCerrarInput {
 }
 
 export interface CajaMovimientoCreateInput {
-  usuario_id: number;
   tipo: TipoMovimiento;
   monto: string;
   concepto: string;
