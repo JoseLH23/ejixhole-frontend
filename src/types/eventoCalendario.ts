@@ -7,6 +7,7 @@ export interface EventoCalendario {
   fecha_inicio: string;
   fecha_fin: string;
   notas?: string | null;
+  unidad_hospedaje_id?: number | null;
   fecha_creacion: string;
   fecha_actualizacion: string;
 }
@@ -17,4 +18,5 @@ export interface EventoCalendarioCreateInput {
   fecha_inicio: string;
   fecha_fin: string;
   notas?: string | null;
+  unidad_hospedaje_id?: number | null;
 }
