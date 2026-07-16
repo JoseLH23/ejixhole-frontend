@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       toast({
         title: "No se pudo cerrar la sesión",
         description: "Revisa tu conexión e inténtalo nuevamente.",
-        variant: "destructive",
+        variant: "error",
       });
       throw error;
     }
