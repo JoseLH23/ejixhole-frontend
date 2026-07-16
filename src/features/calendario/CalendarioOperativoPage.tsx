@@ -1,20 +1,8 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  addMonths,
-  eachDayOfInterval,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameDay,
-  isSameMonth,
-  startOfMonth,
-  startOfToday,
-  startOfWeek,
-  subMonths,
-} from "date-fns";
+import { addMonths, eachDayOfInterval, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, startOfMonth, startOfToday, startOfWeek, subMonths } from "date-fns";
 import { es } from "date-fns/locale";
-import { Ban, Bell, CalendarDays, ChevronLeft, ChevronRight, Megaphone, Plus, Trash2, Users, Wrench, X } from "lucide-react";
+import { Ban, Bell, CalendarDays, ChevronLeft, ChevronRight, Megaphone, Percent, Plus, Trash2, Users, Wrench, X } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { eventosCalendarioApi } from "@/api/eventosCalendario";
@@ -23,9 +11,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EstadoBadge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import { useReporteProximasReservaciones } from "@/features/reportes/useReportes";
+import { useTarifasEspeciales } from "@/features/tarifas/useTarifasEspeciales";
 import { cn } from "@/lib/utils";
 import type { EventoCalendario, TipoEventoCalendario } from "@/types/eventoCalendario";
 import type { ProximaReservacionItem } from "@/types/reporte";
+import type { TarifaEspecial } from "@/types/tarifaEspecial";
 import { cargarEventosCalendario } from "./calendarioLocal";
 import { useCrearEventoCalendario, useEliminarEventoCalendario, useEventosCalendario } from "./useEventosCalendario";
 
@@ -38,12 +28,13 @@ const TIPO_EVENTO: Record<TipoEventoCalendario, { etiqueta: string; icono: typeo
   campana: { etiqueta: "Campaña", icono: Megaphone, clase: "bg-secondary/10 text-secondary", punto: "bg-secondary" },
 };
 
-function claveFecha(fecha: Date) {
-  return format(fecha, "yyyy-MM-dd");
-}
-
-function claveMigracion(scope: string) {
-  return `ejixhole:calendario:migrado-api:${scope}`;
+function claveFecha(fecha: Date) { return format(fecha, "yyyy-MM-dd"); }
+function claveMigracion(scope: string) { return `ejixhole:calendario:migrado-api:${scope}`; }
+function tarifaAplicaEnFecha(tarifa: TarifaEspecial, fecha: Date) {
+  const clave = claveFecha(fecha);
+  if (!tarifa.activa || clave < tarifa.fecha_inicio || clave > tarifa.fecha_fin) return false;
+  const diaLunesCero = (fecha.getDay() + 6) % 7;
+  return !tarifa.dias_semana || tarifa.dias_semana.includes(diaLunesCero);
 }
 
 export function CalendarioOperativoPage() {
@@ -69,14 +60,12 @@ export function CalendarioOperativoPage() {
 
   const reservacionesQuery = useReporteProximasReservaciones({ dias: 125, estado: "confirmada" });
   const eventosQuery = useEventosCalendario({ desde, hasta });
-  const unidadesQuery = useQuery({
-    queryKey: ["unidades-hospedaje"],
-    queryFn: unidadesHospedajeApi.listar,
-    staleTime: 5 * 60_000,
-  });
+  const tarifasQuery = useTarifasEspeciales();
+  const unidadesQuery = useQuery({ queryKey: ["unidades-hospedaje"], queryFn: unidadesHospedajeApi.listar, staleTime: 5 * 60_000 });
   const crearEvento = useCrearEventoCalendario();
   const eliminarEvento = useEliminarEventoCalendario();
   const eventos = eventosQuery.data ?? [];
+  const tarifas = tarifasQuery.data ?? [];
   const unidades = unidadesQuery.data ?? [];
   const unidadPorId = React.useMemo(() => new Map(unidades.map((unidad) => [unidad.id, unidad.nombre])), [unidades]);
 
@@ -85,55 +74,45 @@ export function CalendarioOperativoPage() {
     const marker = claveMigracion(scopeUsuario);
     if (localStorage.getItem(marker) || locales.length === 0 || migrando) return;
     setMigrando(true);
-    Promise.all(
-      locales.map((evento) =>
-        eventosCalendarioApi.crear({
-          titulo: evento.titulo,
-          tipo: evento.tipo,
-          fecha_inicio: evento.fechaInicio,
-          fecha_fin: evento.fechaFin,
-          notas: evento.notas ?? null,
-          unidad_hospedaje_id: null,
-        })
-      )
-    )
-      .then(() => {
-        localStorage.setItem(marker, "1");
-        return eventosQuery.refetch();
-      })
+    Promise.all(locales.map((evento) => eventosCalendarioApi.crear({ titulo: evento.titulo, tipo: evento.tipo, fecha_inicio: evento.fechaInicio, fecha_fin: evento.fechaFin, notas: evento.notas ?? null, unidad_hospedaje_id: null })))
+      .then(() => { localStorage.setItem(marker, "1"); return eventosQuery.refetch(); })
       .catch(() => undefined)
       .finally(() => setMigrando(false));
   }, [scopeUsuario, migrando, eventosQuery]);
 
   const reservacionesPorDia = React.useMemo(() => {
     const mapa = new Map<string, ProximaReservacionItem[]>();
-    for (const item of reservacionesQuery.data?.items ?? []) {
-      mapa.set(item.fecha_visita, [...(mapa.get(item.fecha_visita) ?? []), item]);
-    }
+    for (const item of reservacionesQuery.data?.items ?? []) mapa.set(item.fecha_visita, [...(mapa.get(item.fecha_visita) ?? []), item]);
     return mapa;
   }, [reservacionesQuery.data]);
 
   const eventosPorDia = React.useMemo(() => {
     const mapa = new Map<string, EventoCalendario[]>();
-    for (const evento of eventos) {
-      for (const fecha of eachDayOfInterval({
-        start: new Date(`${evento.fecha_inicio}T00:00:00`),
-        end: new Date(`${evento.fecha_fin}T00:00:00`),
-      })) {
-        const clave = claveFecha(fecha);
-        mapa.set(clave, [...(mapa.get(clave) ?? []), evento]);
-      }
+    for (const evento of eventos) for (const fecha of eachDayOfInterval({ start: new Date(`${evento.fecha_inicio}T00:00:00`), end: new Date(`${evento.fecha_fin}T00:00:00`) })) {
+      const clave = claveFecha(fecha);
+      mapa.set(clave, [...(mapa.get(clave) ?? []), evento]);
     }
     return mapa;
   }, [eventos]);
 
-  const diasCalendario = eachDayOfInterval({
-    start: startOfWeek(startOfMonth(mesActual), { weekStartsOn: 1 }),
-    end: endOfWeek(endOfMonth(mesActual), { weekStartsOn: 1 }),
-  });
+  const tarifasPorDia = React.useMemo(() => {
+    const mapa = new Map<string, TarifaEspecial[]>();
+    for (const tarifa of tarifas) {
+      const inicio = new Date(`${tarifa.fecha_inicio}T00:00:00`);
+      const fin = new Date(`${tarifa.fecha_fin}T00:00:00`);
+      for (const fecha of eachDayOfInterval({ start: inicio, end: fin })) if (tarifaAplicaEnFecha(tarifa, fecha)) {
+        const clave = claveFecha(fecha);
+        mapa.set(clave, [...(mapa.get(clave) ?? []), tarifa].sort((a, b) => b.prioridad - a.prioridad));
+      }
+    }
+    return mapa;
+  }, [tarifas]);
+
+  const diasCalendario = eachDayOfInterval({ start: startOfWeek(startOfMonth(mesActual), { weekStartsOn: 1 }), end: endOfWeek(endOfMonth(mesActual), { weekStartsOn: 1 }) });
   const claveSeleccionada = claveFecha(diaSeleccionado);
   const reservacionesSeleccionadas = reservacionesPorDia.get(claveSeleccionada) ?? [];
   const eventosSeleccionados = eventosPorDia.get(claveSeleccionada) ?? [];
+  const tarifasSeleccionadas = tarifasPorDia.get(claveSeleccionada) ?? [];
   const visitantesSeleccionados = reservacionesSeleccionadas.reduce((total, item) => total + item.num_personas, 0);
 
   function cambiarMes(direccion: -1 | 1) {
@@ -145,14 +124,7 @@ export function CalendarioOperativoPage() {
 
   function abrirFormulario() {
     const fecha = claveFecha(diaSeleccionado);
-    setTitulo("");
-    setTipo("recordatorio");
-    setFechaInicio(fecha);
-    setFechaFin(fecha);
-    setNotas("");
-    setUnidadId(null);
-    setErrorFormulario("");
-    setFormularioAbierto(true);
+    setTitulo(""); setTipo("recordatorio"); setFechaInicio(fecha); setFechaFin(fecha); setNotas(""); setUnidadId(null); setErrorFormulario(""); setFormularioAbierto(true);
   }
 
   async function guardarEvento(event: React.FormEvent) {
@@ -161,95 +133,39 @@ export function CalendarioOperativoPage() {
     if (!tituloLimpio) return setErrorFormulario("Escribe un título para el evento.");
     if (fechaFin < fechaInicio) return setErrorFormulario("La fecha final no puede ser anterior a la fecha inicial.");
     try {
-      await crearEvento.mutateAsync({
-        titulo: tituloLimpio,
-        tipo,
-        fecha_inicio: fechaInicio,
-        fecha_fin: fechaFin,
-        notas: notas.trim() || null,
-        unidad_hospedaje_id: tipo === "bloqueo" ? unidadId : null,
-      });
-      setDiaSeleccionado(new Date(`${fechaInicio}T00:00:00`));
-      setMesActual(startOfMonth(new Date(`${fechaInicio}T00:00:00`)));
-      setFormularioAbierto(false);
-    } catch {
-      setErrorFormulario("No se pudo guardar el evento. Reintenta.");
-    }
+      await crearEvento.mutateAsync({ titulo: tituloLimpio, tipo, fecha_inicio: fechaInicio, fecha_fin: fechaFin, notas: notas.trim() || null, unidad_hospedaje_id: tipo === "bloqueo" ? unidadId : null });
+      setDiaSeleccionado(new Date(`${fechaInicio}T00:00:00`)); setMesActual(startOfMonth(new Date(`${fechaInicio}T00:00:00`))); setFormularioAbierto(false);
+    } catch { setErrorFormulario("No se pudo guardar el evento. Reintenta."); }
   }
 
-  const hayError = reservacionesQuery.isError || eventosQuery.isError;
-  const cargando = reservacionesQuery.isLoading || eventosQuery.isLoading;
+  const hayError = reservacionesQuery.isError || eventosQuery.isError || tarifasQuery.isError;
+  const cargando = reservacionesQuery.isLoading || eventosQuery.isLoading || tarifasQuery.isLoading;
 
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary">Operación</p>
-          <h1 className="font-display text-2xl font-semibold">Calendario operativo</h1>
-          <p className="text-sm text-muted-foreground">Reservaciones, cierres y eventos compartidos.</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={abrirFormulario} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
-            <Plus className="h-4 w-4" /> Evento interno
-          </button>
-          <Link to="/reservaciones" className="rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium">Administrar reservaciones</Link>
-        </div>
-      </div>
+  return <div className="space-y-4">
+    <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wider text-primary">Operación</p><h1 className="font-display text-2xl font-semibold">Calendario operativo</h1><p className="text-sm text-muted-foreground">Reservaciones, cierres, eventos y tarifas activas.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={abrirFormulario} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="h-4 w-4" /> Evento interno</button><Link to="/tarifas" className="rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium">Administrar tarifas</Link><Link to="/reservaciones" className="rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium">Reservaciones</Link></div></div>
+    <div className="flex flex-wrap gap-3 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground"><span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-destructive" />Bloqueo</span><span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-secondary" />Tarifa especial</span><span>Solo la tarifa de mayor prioridad se aplica al precio.</span></div>
+    {migrando && <div className="rounded-xl border border-border bg-card px-3 py-2 text-xs text-muted-foreground">Migrando eventos guardados…</div>}
 
-      <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
-        Los bloqueos ya afectan la disponibilidad real. Puedes cerrar todo el parque o una unidad específica.
-      </div>
-      {migrando && <div className="rounded-xl border border-border bg-card px-3 py-2 text-xs text-muted-foreground">Migrando eventos guardados…</div>}
+    {formularioAbierto && <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4 backdrop-blur-[2px]"><Card className="w-full max-w-lg"><CardHeader className="flex flex-row items-start justify-between space-y-0"><div><CardTitle>Nuevo evento interno</CardTitle><CardDescription>Visible para todos los administradores.</CardDescription></div><button type="button" onClick={() => setFormularioAbierto(false)} aria-label="Cerrar"><X className="h-4 w-4" /></button></CardHeader><CardContent><form onSubmit={guardarEvento} className="space-y-4">
+      <label className="block space-y-1.5 text-sm font-medium">Título<input value={titulo} onChange={(e) => setTitulo(e.target.value)} maxLength={120} autoFocus className="w-full rounded-lg border border-border bg-background px-3 py-2 font-normal" /></label>
+      <label className="block space-y-1.5 text-sm font-medium">Tipo<select value={tipo} onChange={(e) => { setTipo(e.target.value as TipoEventoCalendario); if (e.target.value !== "bloqueo") setUnidadId(null); }} className="w-full rounded-lg border border-border bg-background px-3 py-2 font-normal">{Object.entries(TIPO_EVENTO).map(([valor, config]) => <option key={valor} value={valor}>{config.etiqueta}</option>)}</select></label>
+      {tipo === "bloqueo" && <label className="block space-y-1.5 text-sm font-medium">Alcance del bloqueo<select value={unidadId ?? "global"} onChange={(e) => setUnidadId(e.target.value === "global" ? null : Number(e.target.value))} className="w-full rounded-lg border border-border bg-background px-3 py-2 font-normal"><option value="global">Todo el parque</option>{unidades.map((unidad) => <option key={unidad.id} value={unidad.id}>Solo {unidad.nombre}</option>)}</select></label>}
+      <div className="grid gap-3 sm:grid-cols-2"><label className="text-sm font-medium">Desde<input type="date" value={fechaInicio} min={claveFecha(hoy)} onChange={(e) => { setFechaInicio(e.target.value); if (e.target.value > fechaFin) setFechaFin(e.target.value); }} className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 font-normal" /></label><label className="text-sm font-medium">Hasta<input type="date" value={fechaFin} min={fechaInicio} onChange={(e) => setFechaFin(e.target.value)} className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 font-normal" /></label></div>
+      <label className="block text-sm font-medium">Notas opcionales<textarea value={notas} onChange={(e) => setNotas(e.target.value)} maxLength={2000} rows={3} className="mt-1.5 w-full resize-none rounded-lg border border-border bg-background px-3 py-2 font-normal" /></label>{errorFormulario && <p className="text-sm text-destructive">{errorFormulario}</p>}<div className="flex justify-end gap-2"><button type="button" onClick={() => setFormularioAbierto(false)} className="rounded-lg border border-border px-4 py-2 text-sm">Cancelar</button><button type="submit" disabled={crearEvento.isPending} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">{crearEvento.isPending ? "Guardando…" : "Guardar evento"}</button></div>
+    </form></CardContent></Card></div>}
 
-      {formularioAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4 backdrop-blur-[2px]">
-          <Card className="w-full max-w-lg">
-            <CardHeader className="flex flex-row items-start justify-between space-y-0">
-              <div><CardTitle>Nuevo evento interno</CardTitle><CardDescription>Visible para todos los administradores.</CardDescription></div>
-              <button type="button" onClick={() => setFormularioAbierto(false)} aria-label="Cerrar"><X className="h-4 w-4" /></button>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={guardarEvento} className="space-y-4">
-                <label className="block space-y-1.5 text-sm font-medium">Título<input value={titulo} onChange={(e) => setTitulo(e.target.value)} maxLength={120} autoFocus className="w-full rounded-lg border border-border bg-background px-3 py-2 font-normal" /></label>
-                <label className="block space-y-1.5 text-sm font-medium">Tipo<select value={tipo} onChange={(e) => { setTipo(e.target.value as TipoEventoCalendario); if (e.target.value !== "bloqueo") setUnidadId(null); }} className="w-full rounded-lg border border-border bg-background px-3 py-2 font-normal">{Object.entries(TIPO_EVENTO).map(([valor, config]) => <option key={valor} value={valor}>{config.etiqueta}</option>)}</select></label>
-                {tipo === "bloqueo" && (
-                  <label className="block space-y-1.5 text-sm font-medium">
-                    Alcance del bloqueo
-                    <select value={unidadId ?? "global"} onChange={(e) => setUnidadId(e.target.value === "global" ? null : Number(e.target.value))} className="w-full rounded-lg border border-border bg-background px-3 py-2 font-normal">
-                      <option value="global">Todo el parque</option>
-                      {unidades.map((unidad) => <option key={unidad.id} value={unidad.id}>Solo {unidad.nombre}</option>)}
-                    </select>
-                    <span className="block text-xs font-normal text-muted-foreground">Un bloqueo por unidad deja disponibles las demás habitaciones y cabañas.</span>
-                  </label>
-                )}
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="text-sm font-medium">Desde<input type="date" value={fechaInicio} min={claveFecha(hoy)} onChange={(e) => { setFechaInicio(e.target.value); if (e.target.value > fechaFin) setFechaFin(e.target.value); }} className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 font-normal" /></label>
-                  <label className="text-sm font-medium">Hasta<input type="date" value={fechaFin} min={fechaInicio} onChange={(e) => setFechaFin(e.target.value)} className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 font-normal" /></label>
-                </div>
-                <label className="block text-sm font-medium">Notas opcionales<textarea value={notas} onChange={(e) => setNotas(e.target.value)} maxLength={2000} rows={3} className="mt-1.5 w-full resize-none rounded-lg border border-border bg-background px-3 py-2 font-normal" /></label>
-                {errorFormulario && <p className="text-sm text-destructive">{errorFormulario}</p>}
-                <div className="flex justify-end gap-2"><button type="button" onClick={() => setFormularioAbierto(false)} className="rounded-lg border border-border px-4 py-2 text-sm">Cancelar</button><button type="submit" disabled={crearEvento.isPending} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">{crearEvento.isPending ? "Guardando…" : "Guardar evento"}</button></div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+    {hayError ? <Card><CardContent className="flex flex-col items-center gap-3 py-10 text-center"><CalendarDays className="h-8 w-8 text-muted-foreground" /><p>No se pudo cargar el calendario.</p><button type="button" onClick={() => { reservacionesQuery.refetch(); eventosQuery.refetch(); tarifasQuery.refetch(); }} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Reintentar</button></CardContent></Card> : <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <Card><CardHeader className="flex flex-row items-center justify-between space-y-0"><div><CardTitle className="capitalize">{format(mesActual, "MMMM yyyy", { locale: es })}</CardTitle><CardDescription>Selecciona un día para revisar su operación.</CardDescription></div><div className="flex gap-1"><button type="button" onClick={() => cambiarMes(-1)} disabled={mesActual.getTime() <= primerMes.getTime()} className="rounded-lg border p-2 disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button><button type="button" onClick={() => cambiarMes(1)} disabled={mesActual.getTime() >= ultimoMes.getTime()} className="rounded-lg border p-2 disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button></div></CardHeader><CardContent><div className="grid grid-cols-7 border-b pb-2">{DIAS_SEMANA.map((dia) => <span key={dia} className="text-center text-[11px] font-semibold text-muted-foreground">{dia}</span>)}</div><div className="mt-2 grid grid-cols-7 gap-1">{diasCalendario.map((dia) => {
+        const clave = claveFecha(dia); const reservas = reservacionesPorDia.get(clave) ?? []; const eventosDia = eventosPorDia.get(clave) ?? []; const tarifasDia = tarifasPorDia.get(clave) ?? []; const pasado = dia < hoy;
+        return <button key={clave} type="button" disabled={pasado} onClick={() => setDiaSeleccionado(dia)} className={cn("min-h-20 rounded-xl border p-2 text-left sm:min-h-24", !isSameMonth(dia, mesActual) && "border-transparent bg-muted/20 opacity-50", isSameDay(dia, diaSeleccionado) && "border-primary bg-primary/5", eventosDia.some((e) => e.tipo === "bloqueo") && !pasado && "border-destructive/40 bg-destructive/[0.03]", pasado && "opacity-40")}><div className="flex justify-between"><span className={cn("text-xs font-semibold", isSameDay(dia, hoy) && "rounded-full bg-primary px-1.5 py-0.5 text-primary-foreground")}>{format(dia, "d")}</span><div className="flex gap-1">{[...new Set(eventosDia.map((e) => e.tipo))].slice(0, 2).map((t) => <span key={t} className={cn("h-2 w-2 rounded-full", TIPO_EVENTO[t].punto)} />)}{tarifasDia.length > 0 && <span className="h-2 w-2 rounded-full bg-secondary" />}</div></div>{cargando ? <div className="mt-3 h-2 w-8 animate-pulse rounded bg-muted" /> : reservas.length > 0 && <div className="mt-2 text-[10px]"><p className="font-semibold text-primary">{reservas.length} reservas</p><p className="flex items-center gap-1 text-muted-foreground"><Users className="h-3 w-3" />{reservas.reduce((s, r) => s + r.num_personas, 0)}</p></div>}{tarifasDia[0] && <p className="mt-1 truncate text-[10px] font-medium text-secondary">{tarifasDia[0].nombre}</p>}{!tarifasDia[0] && eventosDia[0] && <p className="mt-1 truncate text-[10px] text-muted-foreground">{eventosDia[0].titulo}</p>}</button>;
+      })}</div></CardContent></Card>
 
-      {hayError ? (
-        <Card><CardContent className="flex flex-col items-center gap-3 py-10 text-center"><CalendarDays className="h-8 w-8 text-muted-foreground" /><p>No se pudo cargar el calendario.</p><button type="button" onClick={() => { reservacionesQuery.refetch(); eventosQuery.refetch(); }} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Reintentar</button></CardContent></Card>
-      ) : (
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0"><div><CardTitle className="capitalize">{format(mesActual, "MMMM yyyy", { locale: es })}</CardTitle><CardDescription>Selecciona un día para revisar su operación.</CardDescription></div><div className="flex gap-1"><button type="button" onClick={() => cambiarMes(-1)} disabled={mesActual.getTime() <= primerMes.getTime()} className="rounded-lg border p-2 disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button><button type="button" onClick={() => cambiarMes(1)} disabled={mesActual.getTime() >= ultimoMes.getTime()} className="rounded-lg border p-2 disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button></div></CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-7 border-b pb-2">{DIAS_SEMANA.map((dia) => <span key={dia} className="text-center text-[11px] font-semibold text-muted-foreground">{dia}</span>)}</div>
-              <div className="mt-2 grid grid-cols-7 gap-1">{diasCalendario.map((dia) => { const clave = claveFecha(dia); const reservas = reservacionesPorDia.get(clave) ?? []; const eventosDia = eventosPorDia.get(clave) ?? []; const pasado = dia < hoy; return <button key={clave} type="button" disabled={pasado} onClick={() => setDiaSeleccionado(dia)} className={cn("min-h-20 rounded-xl border p-2 text-left sm:min-h-24", !isSameMonth(dia, mesActual) && "border-transparent bg-muted/20 opacity-50", isSameDay(dia, diaSeleccionado) && "border-primary bg-primary/5", eventosDia.some((e) => e.tipo === "bloqueo") && !pasado && "border-destructive/40 bg-destructive/[0.03]", pasado && "opacity-40")}><div className="flex justify-between"><span className={cn("text-xs font-semibold", isSameDay(dia, hoy) && "rounded-full bg-primary px-1.5 py-0.5 text-primary-foreground")}>{format(dia, "d")}</span><div className="flex gap-1">{[...new Set(eventosDia.map((e) => e.tipo))].slice(0, 3).map((t) => <span key={t} className={cn("h-2 w-2 rounded-full", TIPO_EVENTO[t].punto)} />)}</div></div>{cargando ? <div className="mt-3 h-2 w-8 animate-pulse rounded bg-muted" /> : reservas.length > 0 && <div className="mt-2 text-[10px]"><p className="font-semibold text-primary">{reservas.length} reservas</p><p className="flex items-center gap-1 text-muted-foreground"><Users className="h-3 w-3" />{reservas.reduce((s, r) => s + r.num_personas, 0)}</p></div>}{eventosDia[0] && <p className="mt-1 truncate text-[10px] text-muted-foreground">{eventosDia[0].titulo}</p>}</button>; })}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="h-fit"><CardHeader><CardTitle className="capitalize">{format(diaSeleccionado, "EEEE d 'de' MMMM", { locale: es })}</CardTitle><CardDescription>{reservacionesSeleccionadas.length} reservaciones · {visitantesSeleccionados} visitantes</CardDescription></CardHeader><CardContent className="space-y-4">{eventosSeleccionados.map((evento) => { const config = TIPO_EVENTO[evento.tipo]; const Icono = config.icono; const unidad = evento.unidad_hospedaje_id ? unidadPorId.get(evento.unidad_hospedaje_id) : null; return <div key={evento.id} className="rounded-xl border p-3"><div className="flex justify-between gap-2"><div><span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold", config.clase)}><Icono className="h-3 w-3" />{config.etiqueta}</span><p className="mt-1 text-sm font-semibold">{evento.titulo}</p><p className="text-xs text-muted-foreground">{evento.fecha_inicio === evento.fecha_fin ? evento.fecha_inicio : `${evento.fecha_inicio} — ${evento.fecha_fin}`}</p>{evento.tipo === "bloqueo" && <p className="mt-1 text-xs font-medium text-destructive">{unidad ? `Solo ${unidad}` : "Todo el parque"}</p>}</div><button type="button" disabled={eliminarEvento.isPending} onClick={() => eliminarEvento.mutate(evento.id)} className="h-fit rounded-lg p-1.5 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button></div>{evento.notas && <p className="mt-2 text-xs text-muted-foreground">{evento.notas}</p>}</div>; })}{reservacionesSeleccionadas.map((item) => <div key={item.reservacion_id} className="rounded-xl border p-3"><div className="flex justify-between"><div><p className="text-sm font-semibold">{item.servicio_nombre}</p><p className="text-xs text-muted-foreground">{item.cliente_nombre}</p></div><EstadoBadge estado={item.estado} /></div><p className="mt-2 text-xs text-muted-foreground">{item.num_personas} personas</p></div>)}{eventosSeleccionados.length === 0 && reservacionesSeleccionadas.length === 0 && <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">Día sin actividad registrada.</div>}</CardContent></Card>
-        </div>
-      )}
-    </div>
-  );
+      <Card className="h-fit"><CardHeader><CardTitle className="capitalize">{format(diaSeleccionado, "EEEE d 'de' MMMM", { locale: es })}</CardTitle><CardDescription>{reservacionesSeleccionadas.length} reservaciones · {visitantesSeleccionados} visitantes</CardDescription></CardHeader><CardContent className="space-y-4">
+        {tarifasSeleccionadas.map((tarifa, index) => { const porcentaje = Number(tarifa.porcentaje_ajuste); return <div key={tarifa.id} className="rounded-xl border border-secondary/30 bg-secondary/5 p-3"><div className="flex items-start gap-2"><Percent className="mt-0.5 h-4 w-4 text-secondary" /><div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-semibold">{tarifa.nombre}</p>{index === 0 && <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-secondary-foreground">Se aplica</span>}</div><p className="text-xs text-muted-foreground">{porcentaje > 0 ? "+" : ""}{porcentaje}% · Prioridad {tarifa.prioridad}</p><p className="text-xs text-muted-foreground">{tarifa.unidad_hospedaje_id ? unidadPorId.get(tarifa.unidad_hospedaje_id) ?? "Unidad específica" : "Alcance general"}</p></div></div></div>; })}
+        {eventosSeleccionados.map((evento) => { const config = TIPO_EVENTO[evento.tipo]; const Icono = config.icono; const unidad = evento.unidad_hospedaje_id ? unidadPorId.get(evento.unidad_hospedaje_id) : null; return <div key={evento.id} className="rounded-xl border p-3"><div className="flex justify-between gap-2"><div><span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold", config.clase)}><Icono className="h-3 w-3" />{config.etiqueta}</span><p className="mt-1 text-sm font-semibold">{evento.titulo}</p><p className="text-xs text-muted-foreground">{evento.fecha_inicio === evento.fecha_fin ? evento.fecha_inicio : `${evento.fecha_inicio} — ${evento.fecha_fin}`}</p>{evento.tipo === "bloqueo" && <p className="mt-1 text-xs font-medium text-destructive">{unidad ? `Solo ${unidad}` : "Todo el parque"}</p>}</div><button type="button" disabled={eliminarEvento.isPending} onClick={() => eliminarEvento.mutate(evento.id)} className="h-fit rounded-lg p-1.5 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button></div>{evento.notas && <p className="mt-2 text-xs text-muted-foreground">{evento.notas}</p>}</div>; })}
+        {reservacionesSeleccionadas.map((item) => <div key={item.reservacion_id} className="rounded-xl border p-3"><div className="flex justify-between"><div><p className="text-sm font-semibold">{item.servicio_nombre}</p><p className="text-xs text-muted-foreground">{item.cliente_nombre}</p></div><EstadoBadge estado={item.estado} /></div><p className="mt-2 text-xs text-muted-foreground">{item.num_personas} personas</p></div>)}
+        {tarifasSeleccionadas.length === 0 && eventosSeleccionados.length === 0 && reservacionesSeleccionadas.length === 0 && <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">Día sin actividad registrada.</div>}
+      </CardContent></Card>
+    </div>}
+  </div>;
 }
