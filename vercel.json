@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://c-ejixhole-backend.onrender.com/:path*"
+      "destination": "https://c-ejixhole-backend.onrender.com/api/v1/:path*"
     },
     {
       "source": "/(.*)",
