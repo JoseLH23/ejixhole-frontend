@@ -5,6 +5,7 @@ import {
   CalendarCheck,
   CalendarDays,
   Package,
+  BadgePercent,
   Wallet,
   Landmark,
   BarChart3,
@@ -16,9 +17,7 @@ export interface NavItem {
   label: string;
   path: string;
   icon: LucideIcon;
-  /** Roles permitidos — mismo mapeo exacto que docs/modulos/permisos-por-rol.md */
   roles: Rol[];
-  /** Sección visual del Sidebar (Entrega 6) — puramente de presentación, no afecta permisos ni rutas. */
   grupo: "Principal" | "Operación" | "Análisis" | "Administración";
 }
 
@@ -28,6 +27,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Clientes", path: "/clientes", icon: Users, roles: ["admin", "operador"], grupo: "Operación" },
   { label: "Reservaciones", path: "/reservaciones", icon: CalendarCheck, roles: ["admin", "operador"], grupo: "Operación" },
   { label: "Servicios", path: "/servicios", icon: Package, roles: ["admin"], grupo: "Operación" },
+  { label: "Tarifas", path: "/tarifas", icon: BadgePercent, roles: ["admin"], grupo: "Operación" },
   { label: "Pagos", path: "/pagos", icon: Wallet, roles: ["admin", "cajero"], grupo: "Operación" },
   { label: "Caja", path: "/caja", icon: Landmark, roles: ["admin", "operador", "cajero"], grupo: "Operación" },
   { label: "Reportes", path: "/reportes", icon: BarChart3, roles: ["admin"], grupo: "Análisis" },
