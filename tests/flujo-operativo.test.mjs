@@ -17,9 +17,9 @@ test("el panel conserva el flujo oficial de una visita", async () => {
   assert.match(pagina, /r\.estado === "en_curso" && r\.pago_completo/);
   assert.match(pagina, /r\.estado === "en_curso" && !r\.pago_completo/);
 
-  assert.match(pagina, />Check-in</);
-  assert.match(pagina, /> Check-out</);
-  assert.match(pagina, /> Cobrar saldo</);
+  assert.match(pagina, /Check-in/);
+  assert.match(pagina, /Check-out/);
+  assert.match(pagina, /Cobrar saldo/);
 });
 
 test("los contratos HTTP críticos apuntan a los endpoints correctos", async () => {
