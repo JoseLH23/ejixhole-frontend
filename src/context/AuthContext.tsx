@@ -1,35 +1,28 @@
 import * as React from "react";
-import { jwtDecode } from "jwt-decode";
 
 import { authApi } from "@/api/auth";
-import {
-  clearStoredToken,
-  getStoredToken,
-  registerUnauthorizedHandler,
-  setStoredToken,
-} from "@/api/client";
+import { registerUnauthorizedHandler } from "@/api/client";
 import { useToast } from "@/components/ui/toast-provider";
-import type { JwtPayload, Rol, UsuarioActual } from "@/types/auth";
+import type { Rol, UsuarioActual, UsuarioMe } from "@/types/auth";
 
 interface AuthContextValue {
   usuario: UsuarioActual | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   tieneRol: (rolesPermitidos: Rol[]) => boolean;
 }
 
 const AuthContext = React.createContext<AuthContextValue | undefined>(undefined);
 
-function decodificarUsuario(token: string): UsuarioActual | null {
-  try {
-    const payload = jwtDecode<JwtPayload>(token);
-    if (payload.exp < Date.now() / 1000) return null;
-    return { email: payload.sub, rol: payload.rol as Rol };
-  } catch {
-    return null;
-  }
+function usuarioDesdePerfil(perfil: UsuarioMe): UsuarioActual {
+  return {
+    id: perfil.id,
+    nombre: perfil.nombre,
+    email: perfil.email,
+    rol: perfil.rol,
+  };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -39,44 +32,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const usuarioRef = React.useRef(usuario);
   usuarioRef.current = usuario;
 
-  /**
-   * Completa el perfil del JWT con los datos confiables de `/auth/me`.
-   * El ID real permite que Reservaciones, Pagos y Caja dejen de pedirle al
-   * operador un número manual que el backend ya conoce por su sesión.
-   */
-  const cargarPerfilReal = React.useCallback(async () => {
-    try {
-      const perfil = await authApi.me();
-      setUsuario((actual) =>
-        actual
-          ? {
-              ...actual,
-              id: perfil.id,
-              nombre: perfil.nombre,
-              email: perfil.email,
-              rol: perfil.rol,
-            }
-          : actual
-      );
-    } catch {
-      // El interceptor atiende un 401; una falla de red no debe romper una
-      // sesión cuyo JWT todavía es válido.
-    }
-  }, []);
-
+  // Restaurar sesión significa preguntarle al servidor. El navegador puede
+  // enviar la cookie HttpOnly, pero JavaScript nunca puede leer el JWT.
   React.useEffect(() => {
-    const token = getStoredToken();
-    if (token) {
-      const usuarioRestaurado = decodificarUsuario(token);
-      if (usuarioRestaurado) {
-        setUsuario(usuarioRestaurado);
-        void cargarPerfilReal();
-      } else {
-        clearStoredToken();
+    let activo = true;
+
+    const restaurarSesion = async () => {
+      try {
+        const perfil = await authApi.me();
+        if (activo) setUsuario(usuarioDesdePerfil(perfil));
+      } catch {
+        if (activo) setUsuario(null);
+      } finally {
+        if (activo) setIsLoading(false);
       }
-    }
-    setIsLoading(false);
-  }, [cargarPerfilReal]);
+    };
+
+    void restaurarSesion();
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   React.useEffect(() => {
     registerUnauthorizedHandler(() => {
@@ -91,21 +67,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, [toast]);
 
-  const login = React.useCallback(
-    async (email: string, password: string) => {
-      const { access_token } = await authApi.login({ email, password });
-      setStoredToken(access_token);
-      const usuarioLogueado = decodificarUsuario(access_token);
-      setUsuario(usuarioLogueado);
-      if (usuarioLogueado) void cargarPerfilReal();
-    },
-    [cargarPerfilReal]
-  );
-
-  const logout = React.useCallback(() => {
-    clearStoredToken();
-    setUsuario(null);
+  const login = React.useCallback(async (email: string, password: string) => {
+    await authApi.login({ email, password });
+    const perfil = await authApi.me();
+    setUsuario(usuarioDesdePerfil(perfil));
   }, []);
+
+  const logout = React.useCallback(async () => {
+    try {
+      await authApi.logout();
+      setUsuario(null);
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 401) {
+        setUsuario(null);
+        return;
+      }
+      toast({
+        title: "No se pudo cerrar la sesión",
+        description: "Revisa tu conexión e inténtalo nuevamente.",
+        variant: "error",
+      });
+      throw error;
+    }
+  }, [toast]);
 
   const tieneRol = React.useCallback(
     (rolesPermitidos: Rol[]) => (usuario ? rolesPermitidos.includes(usuario.rol) : false),

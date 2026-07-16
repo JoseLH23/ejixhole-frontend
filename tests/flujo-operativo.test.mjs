@@ -45,6 +45,7 @@ test("los contratos HTTP críticos apuntan a los endpoints correctos", async () 
   ]);
 
   assert.match(auth, /"\/auth\/login"/);
+  assert.match(auth, /"\/auth\/logout"/);
   assert.match(reservaciones, /`\/reservaciones\/\$\{id\}\/check-in`/);
   assert.match(reservaciones, /`\/reservaciones\/\$\{id\}\/check-out`/);
   assert.match(pagos, /"\/pagos"/);
@@ -52,6 +53,27 @@ test("los contratos HTTP críticos apuntan a los endpoints correctos", async () 
   assert.match(caja, /"\/caja\/abrir"/);
   assert.match(caja, /`\/caja\/\$\{sesionId\}\/movimientos`/);
   assert.match(caja, /"Idempotency-Key"/);
+});
+
+test("la sesión administrativa no persiste el JWT en JavaScript", async () => {
+  const [cliente, contexto, vercel] = await Promise.all([
+    leer("src/api/client.ts"),
+    leer("src/context/AuthContext.tsx"),
+    leer("vercel.json"),
+  ]);
+
+  assert.match(cliente, /withCredentials:\s*true/);
+  assert.match(cliente, /"X-CSRF-Token"/);
+  assert.match(cliente, /import\.meta\.env\.PROD \? "\/api"/);
+  assert.doesNotMatch(cliente, /localStorage/);
+  assert.doesNotMatch(cliente, /headers\.Authorization/);
+
+  assert.match(contexto, /await authApi\.me\(\)/);
+  assert.match(contexto, /await authApi\.logout\(\)/);
+  assert.doesNotMatch(contexto, /jwtDecode|setStoredToken|getStoredToken/);
+
+  assert.match(vercel, /"source": "\/api\/:path\*"/);
+  assert.match(vercel, /c-ejixhole-backend\.onrender\.com/);
 });
 
 test("caja reutiliza la clave idempotente hasta recibir éxito", async () => {
