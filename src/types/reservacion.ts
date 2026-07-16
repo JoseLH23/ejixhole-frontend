@@ -1,6 +1,6 @@
 /** Tipos que reflejan app/schemas/reservacion.py y app/models/reservacion.py del backend. */
 
-export const ESTADOS_RESERVACION = ["pendiente", "confirmada", "completada", "cancelada"] as const;
+export const ESTADOS_RESERVACION = ["pendiente", "confirmada", "en_curso", "completada", "cancelada"] as const;
 export type EstadoReservacion = (typeof ESTADOS_RESERVACION)[number];
 
 export const ORIGENES_RESERVACION = ["recepcion", "recepcion_express", "portal", "telefono"] as const;
@@ -15,9 +15,7 @@ export interface Reservacion {
   servicio_id: number;
   usuario_id: number | null;
   fecha_reservacion: string;
-  fecha_visita: string; // date, ej. "2026-08-15"
-  // Agregados (fase portal público, ver app/schemas/reservacion.py del
-  // backend — ReservacionOut ya los devuelve, faltaban en este tipo).
+  fecha_visita: string;
   tipo_reservacion: TipoReservacion;
   fecha_llegada: string | null;
   fecha_salida: string | null;
@@ -25,9 +23,14 @@ export interface Reservacion {
   num_personas: number;
   estado: EstadoReservacion;
   origen: OrigenReservacion;
-  total: string; // Decimal serializado como string
+  total: string;
   monto_pagado: string;
   saldo_pendiente: string;
+  pago_completo: boolean;
+  fecha_checkin: string | null;
+  checkin_usuario_id: number | null;
+  fecha_checkout: string | null;
+  checkout_usuario_id: number | null;
   notas: string | null;
   fecha_creacion: string;
   fecha_actualizacion: string;
@@ -36,27 +39,15 @@ export interface Reservacion {
 export interface ReservacionCreateInput {
   cliente_id: number;
   servicio_id: number;
-  /**
-   * Temporal: el backend todavía no toma esto del JWT (ver
-   * app/schemas/reservacion.py del backend) — hay que mandarlo
-   * explícito. Ver docs/entrega-3c.md para cómo se resuelve en la UI.
-   */
-  usuario_id: number;
   tipo_reservacion: TipoReservacion;
   fecha_llegada: string;
   fecha_salida: string;
-  /** Solo obligatorio (y solo válido) cuando tipo_reservacion === "hospedaje". */
   unidad_hospedaje_id?: number;
   num_personas: number;
   origen: OrigenReservacion;
   notas?: string;
 }
 
-/**
- * PUT /reservaciones/{id} — no incluye cliente_id, usuario_id, origen
- * ni tipo_reservacion a propósito: el backend no los acepta al editar
- * (ver docstring de ReservacionService.actualizar en el backend).
- */
 export interface ReservacionUpdateInput {
   servicio_id?: number;
   fecha_llegada?: string;
