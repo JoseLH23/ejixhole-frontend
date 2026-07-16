@@ -1,6 +1,8 @@
+import { useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { cajaApi, type ListarCajaSesionesParams } from "@/api/caja";
+import { generarIdempotencyKey } from "@/lib/idempotencyKey";
 import type { CajaAbrirInput, CajaCerrarInput, CajaMovimientoCreateInput } from "@/types/caja";
 
 const CAJA_QUERY_KEY = ["caja"] as const;
@@ -14,11 +16,8 @@ export function useCajaSesiones(params: ListarCajaSesionesParams = {}) {
 }
 
 /**
- * "Mi caja actual": no existe un endpoint dedicado — se reutiliza
- * GET /caja?usuario_id=X&estado=abierta (sí lo soporta el backend) y
- * se toma la primera coincidencia. Como la regla de negocio ya
- * garantiza como máximo una sesión abierta por usuario, esto es
- * exacto, no una aproximación.
+ * "Mi caja actual": se reutiliza GET /caja?usuario_id=X&estado=abierta.
+ * La regla del backend garantiza como máximo una sesión abierta por usuario.
  */
 export function useCajaSesionActual(usuarioId: number | null) {
   const query = useQuery({
@@ -42,11 +41,16 @@ export function useCajaMovimientos(sesionId: number | null) {
 
 export function useAbrirCaja() {
   const queryClient = useQueryClient();
+  const idempotencyKeyRef = useRef(generarIdempotencyKey());
+
   return useMutation({
-    mutationFn: (data: CajaAbrirInput) => cajaApi.abrir(data),
+    mutationFn: (data: CajaAbrirInput) => cajaApi.abrir(data, idempotencyKeyRef.current),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CAJA_QUERY_KEY });
+      idempotencyKeyRef.current = generarIdempotencyKey();
     },
+    // Ante timeout o pérdida de red se conserva la misma clave: el backend
+    // puede haber abierto la caja aunque la respuesta no haya llegado.
   });
 }
 
@@ -63,14 +67,15 @@ export function useCerrarCaja() {
 
 export function useRegistrarMovimiento() {
   const queryClient = useQueryClient();
+  const idempotencyKeyRef = useRef(generarIdempotencyKey());
+
   return useMutation({
     mutationFn: ({ sesionId, data }: { sesionId: number; data: CajaMovimientoCreateInput }) =>
-      cajaApi.registrarMovimiento(sesionId, data),
+      cajaApi.registrarMovimiento(sesionId, data, idempotencyKeyRef.current),
     onSuccess: () => {
-      // Un movimiento cambia saldo_actual de la sesión (lo calcula el
-      // backend) además de agregarse a la lista de movimientos — hay
-      // que invalidar toda la rama de caja, no solo "movimientos".
       queryClient.invalidateQueries({ queryKey: CAJA_QUERY_KEY });
+      idempotencyKeyRef.current = generarIdempotencyKey();
     },
+    // No renovar en onError: un reintento incierto debe conservar identidad.
   });
 }

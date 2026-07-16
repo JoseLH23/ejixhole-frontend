@@ -15,9 +15,15 @@ export interface ListarCajaSesionesParams {
   offset?: number;
 }
 
+function headersIdempotencia(idempotencyKey?: string) {
+  return idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined;
+}
+
 export const cajaApi = {
-  abrir: async (data: CajaAbrirInput): Promise<CajaSesion> => {
-    const response = await apiClient.post<CajaSesion>("/caja/abrir", data);
+  abrir: async (data: CajaAbrirInput, idempotencyKey?: string): Promise<CajaSesion> => {
+    const response = await apiClient.post<CajaSesion>("/caja/abrir", data, {
+      headers: headersIdempotencia(idempotencyKey),
+    });
     return response.data;
   },
 
@@ -38,9 +44,12 @@ export const cajaApi = {
 
   registrarMovimiento: async (
     sesionId: number,
-    data: CajaMovimientoCreateInput
+    data: CajaMovimientoCreateInput,
+    idempotencyKey?: string
   ): Promise<CajaMovimiento> => {
-    const response = await apiClient.post<CajaMovimiento>(`/caja/${sesionId}/movimientos`, data);
+    const response = await apiClient.post<CajaMovimiento>(`/caja/${sesionId}/movimientos`, data, {
+      headers: headersIdempotencia(idempotencyKey),
+    });
     return response.data;
   },
 
@@ -48,8 +57,4 @@ export const cajaApi = {
     const response = await apiClient.get<CajaMovimiento[]>(`/caja/${sesionId}/movimientos`);
     return response.data;
   },
-
-  // corte-dia no se consume en esta entrega (no fue pedido) — queda
-  // disponible en el backend para una futura pantalla de "corte del
-  // día", ver docs/entrega-3e.md.
 };
