@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CalendarRange, Percent, Plus, Power, Trash2, X } from "lucide-react";
+import { Percent, Plus, Power, Trash2, X } from "lucide-react";
 
 import { useUnidadesHospedaje } from "@/features/reservaciones/useUnidadesHospedaje";
 import type { AplicaTarifa, TarifaEspecialInput } from "@/types/tarifaEspecial";
