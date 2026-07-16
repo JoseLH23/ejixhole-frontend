@@ -1,5 +1,11 @@
 import { apiClient } from "./client";
-import type { Rol, Usuario, UsuarioCreateInput, UsuarioRolUpdateInput } from "@/types/usuario";
+import type {
+  Rol,
+  Usuario,
+  UsuarioCreateInput,
+  UsuarioPasswordResetInput,
+  UsuarioRolUpdateInput,
+} from "@/types/usuario";
 
 export interface ListarUsuariosParams {
   limit?: number;
@@ -29,8 +35,21 @@ export const usuariosApi = {
     return response.data;
   },
 
+  reactivar: async (id: number): Promise<Usuario> => {
+    const response = await apiClient.patch<Usuario>(`/usuarios/${id}/reactivar`);
+    return response.data;
+  },
+
   actualizarRol: async (id: number, data: UsuarioRolUpdateInput): Promise<Usuario> => {
     const response = await apiClient.patch<Usuario>(`/usuarios/${id}/rol`, data);
+    return response.data;
+  },
+
+  restablecerPassword: async (
+    id: number,
+    data: UsuarioPasswordResetInput
+  ): Promise<Usuario> => {
+    const response = await apiClient.patch<Usuario>(`/usuarios/${id}/password`, data);
     return response.data;
   },
 };
