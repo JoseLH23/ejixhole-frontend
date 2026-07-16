@@ -8,9 +8,7 @@ function conApiV1(base: string): string {
   return normalizada.endsWith("/api/v1") ? normalizada : `${normalizada}/api/v1`;
 }
 
-const API_BASE_URL = import.meta.env.PROD
-  ? "/api"
-  : conApiV1(import.meta.env.VITE_API_BASE_URL || "http://localhost:8000");
+const API_BASE_URL = import.meta.env.PROD ? "/api" : conApiV1(import.meta.env.VITE_API_BASE_URL || "http://localhost:8000");
 
 function leerCookie(nombre: string): string | null {
   if (typeof document === "undefined") return null;
