@@ -1,9 +1,18 @@
 import { apiClient } from "./client";
-import type { TarifaEspecial, TarifaEspecialInput } from "@/types/tarifaEspecial";
+import type {
+  SimulacionTarifaInput,
+  SimulacionTarifaResultado,
+  TarifaEspecial,
+  TarifaEspecialInput,
+} from "@/types/tarifaEspecial";
 
 export const tarifasEspecialesApi = {
   listar: async (): Promise<TarifaEspecial[]> => {
     const response = await apiClient.get<TarifaEspecial[]>("/tarifas-especiales");
+    return response.data;
+  },
+  simular: async (data: SimulacionTarifaInput): Promise<SimulacionTarifaResultado> => {
+    const response = await apiClient.post<SimulacionTarifaResultado>("/tarifas-especiales/simular", data);
     return response.data;
   },
   crear: async (data: TarifaEspecialInput): Promise<TarifaEspecial> => {
