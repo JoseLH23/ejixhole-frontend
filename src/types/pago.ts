@@ -10,7 +10,7 @@ export interface Pago {
   id: number;
   reservacion_id: number;
   usuario_id: number;
-  monto: string; // Decimal serializado como string
+  monto: string;
   tipo: TipoPago;
   metodo_pago: MetodoPago;
   referencia: string | null;
@@ -20,8 +20,6 @@ export interface Pago {
 
 export interface PagoCreateInput {
   reservacion_id: number;
-  /** Temporal, misma limitación que en Reservaciones — ver docs/entrega-3d.md. */
-  usuario_id: number;
   monto: string;
   tipo: TipoPago;
   metodo_pago: MetodoPago;
