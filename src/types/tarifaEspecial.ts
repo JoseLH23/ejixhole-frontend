@@ -28,3 +28,23 @@ export interface TarifaEspecialInput {
   unidad_hospedaje_id?: number | null;
   activa: boolean;
 }
+
+export interface SimulacionTarifaInput {
+  servicio_id: number;
+  tipo_reservacion: Exclude<AplicaTarifa, "todos">;
+  fecha_llegada: string;
+  fecha_salida: string;
+  num_personas: number;
+  unidad_hospedaje_id?: number | null;
+  candidata: TarifaEspecialInput;
+}
+
+export interface SimulacionTarifaResultado {
+  total_base: string;
+  total_actual: string;
+  total_con_candidata: string;
+  diferencia: string;
+  regla_ganadora: string | null;
+  desglose: Array<{ concepto: string; detalle: string; subtotal: string }>;
+  conflictos: string[];
+}
