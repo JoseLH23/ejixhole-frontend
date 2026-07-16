@@ -1,4 +1,4 @@
-﻿name: Frontend CI
+name: Frontend CI
 
 on:
   push:
@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    name: Instalar y compilar
+    name: Probar y compilar
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -32,6 +32,9 @@ jobs:
 
       - name: Instalar dependencias
         run: npm ci
+
+      - name: Ejecutar pruebas automáticas
+        run: npm test
 
       - name: Compilar proyecto
         shell: bash
