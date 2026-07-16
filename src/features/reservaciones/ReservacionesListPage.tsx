@@ -4,13 +4,14 @@ import {
   Search,
   CheckCircle2,
   XCircle,
-  FlagTriangleRight,
   Wallet,
   Globe,
   Building2,
   Loader2,
   CalendarCheck,
   Pencil,
+  LogIn,
+  LogOut,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,12 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { formatearMoneda } from "@/lib/format";
 import { useClientes } from "@/features/clientes/useClientes";
 import { useServicios } from "@/features/servicios/useServicios";
-import { useReservaciones, useCambiarEstadoReservacion } from "./useReservaciones";
+import {
+  useReservaciones,
+  useCambiarEstadoReservacion,
+  useCheckInReservacion,
+  useCheckOutReservacion,
+} from "./useReservaciones";
 import { ReservacionFormModal } from "./ReservacionFormModal";
 import { PagoModal } from "@/features/pagos/PagoModal";
 import {
@@ -48,48 +54,33 @@ const TIPO_LABELS: Record<string, string> = {
   hospedaje: "Hospedaje",
 };
 
-/**
- * Formatea una fecha "YYYY-MM-DD" como "15 ago" (es-MX, corta) sin
- * depender de un helper compartido nuevo — es una necesidad puntual
- * de esta tabla/tarjetas, no de otro módulo todavía.
- */
+const ESTADO_LABELS: Record<EstadoReservacion, string> = {
+  pendiente: "Pendiente",
+  confirmada: "Confirmada",
+  en_curso: "En curso",
+  completada: "Completada",
+  cancelada: "Cancelada",
+};
+
 function formatearFechaCorta(fecha: string | null): string {
   if (!fecha) return "—";
-  const partes = `${fecha}T00:00:00`;
-  const d = new Date(partes);
+  const d = new Date(`${fecha}T00:00:00`);
   if (Number.isNaN(d.getTime())) return fecha;
   return d.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
 }
 
-/**
- * Rango de fechas de la reservación. "entrada" es un solo día
- * (llegada === salida); camping/hospedaje muestran el rango completo.
- * Si por alguna razón fecha_llegada viene vacía (datos antiguos),
- * cae de vuelta a fecha_visita — misma lógica que ya usa el backend
- * en app/services/notificacion_service.py.
- */
 function formatearRangoFechas(r: Reservacion): string {
   const llegada = r.fecha_llegada ?? r.fecha_visita;
   const salida = r.fecha_salida;
-  if (!salida || salida === llegada) {
-    return formatearFechaCorta(llegada);
-  }
+  if (!salida || salida === llegada) return formatearFechaCorta(llegada);
   return `${formatearFechaCorta(llegada)} → ${formatearFechaCorta(salida)}`;
 }
 
-/**
- * Distingue visualmente si la reservación llegó del portal público
- * (visitante, sin intervención de personal) o fue registrada
- * internamente (recepción/recepción express/teléfono). Basado en el
- * campo real `origen` del backend (app/models/reservacion.py,
- * ORIGENES_RESERVACION) — no se inventa ninguna heurística nueva.
- */
 function OrigenBadge({ origen }: { origen: OrigenReservacion }) {
   if (origen === "portal") {
     return (
       <Badge variant="secondary" className="gap-1">
-        <Globe className="h-3 w-3" />
-        Portal público
+        <Globe className="h-3 w-3" /> Portal público
       </Badge>
     );
   }
@@ -97,59 +88,15 @@ function OrigenBadge({ origen }: { origen: OrigenReservacion }) {
     origen === "recepcion" ? "Recepción" : origen === "recepcion_express" ? "Recepción express" : "Teléfono";
   return (
     <Badge variant="outline" className="gap-1">
-      <Building2 className="h-3 w-3" />
-      {label}
+      <Building2 className="h-3 w-3" /> {label}
     </Badge>
   );
 }
 
-interface Accion {
-  label: string;
-  nuevoEstado: EstadoReservacion;
-  Icon: typeof CheckCircle2;
-  destructiva: boolean;
-}
-
-/**
- * Transiciones de estado válidas según ReservacionService.cambiar_estado
- * en el backend: nunca desde un estado terminal (completada/cancelada),
- * nunca al mismo estado. Se listan aquí solo las que tienen sentido de
- * negocio (no se ofrece "volver a pendiente", por ejemplo).
- *
- * Para solicitudes pendientes que vinieron del portal público, el
- * lenguaje cambia a "Aceptar"/"Rechazar" (son solicitudes de un
- * visitante que el parque debe revisar) en vez de "Confirmar"/
- * "Cancelar" (reservaciones ya capturadas por el personal). La
- * transición de estado en el backend es idéntica en ambos casos —
- * solo cambia la etiqueta mostrada.
- */
-function accionesDisponibles(r: Reservacion): Accion[] {
-  const esSolicitudPortal = r.origen === "portal" && r.estado === "pendiente";
-
-  if (r.estado === "pendiente") {
-    return [
-      {
-        label: esSolicitudPortal ? "Aceptar" : "Confirmar",
-        nuevoEstado: "confirmada",
-        Icon: CheckCircle2,
-        destructiva: false,
-      },
-      {
-        label: esSolicitudPortal ? "Rechazar" : "Cancelar",
-        nuevoEstado: "cancelada",
-        Icon: XCircle,
-        destructiva: true,
-      },
-    ];
-  }
-  if (r.estado === "confirmada") {
-    return [
-      { label: "Completar", nuevoEstado: "completada", Icon: FlagTriangleRight, destructiva: false },
-      { label: "Cancelar", nuevoEstado: "cancelada", Icon: XCircle, destructiva: true },
-    ];
-  }
-  return []; // completada/cancelada: estados terminales, sin acciones
-}
+type Confirmacion = {
+  tipo: "cancelar" | "checkout";
+  reservacion: Reservacion;
+} | null;
 
 export function ReservacionesListPage() {
   const { toast } = useToast();
@@ -165,14 +112,8 @@ export function ReservacionesListPage() {
   const [modalAbierto, setModalAbierto] = React.useState(false);
   const [reservacionEditar, setReservacionEditar] = React.useState<Reservacion | null>(null);
   const [pagoReservacionId, setPagoReservacionId] = React.useState<number | null>(null);
-  const [transicionPendiente, setTransicionPendiente] = React.useState<{
-    reservacion: Reservacion;
-    nuevoEstado: EstadoReservacion;
-    label: string;
-  } | null>(null);
+  const [confirmacion, setConfirmacion] = React.useState<Confirmacion>(null);
 
-  // Filtros reales, enviados al backend (a diferencia de la búsqueda
-  // de texto, que es local — GET /reservaciones sí soporta estos).
   const filtrosServidor = {
     estado: filtroEstado === FILTRO_TODOS ? undefined : (filtroEstado as EstadoReservacion),
     servicio_id: filtroServicio === FILTRO_TODOS ? undefined : Number(filtroServicio),
@@ -182,9 +123,9 @@ export function ReservacionesListPage() {
 
   const { data: reservaciones, isLoading, isError, error, refetch, isFetching } = useReservaciones(filtrosServidor);
   const cambiarEstado = useCambiarEstadoReservacion();
+  const checkIn = useCheckInReservacion();
+  const checkOut = useCheckOutReservacion();
 
-  // Reutiliza los hooks ya existentes de Clientes/Servicios — solo
-  // para resolver nombres, no se crea ninguna llamada nueva a esas APIs.
   const { data: clientes } = useClientes({ solo_activos: false, limit: 200 });
   const { data: servicios } = useServicios({ solo_activos: false, limit: 200 });
 
@@ -197,98 +138,126 @@ export function ReservacionesListPage() {
     [servicios]
   );
 
-  /**
-   * Búsqueda de texto: el backend no soporta un filtro de texto libre
-   * (solo estado/servicio_id/fechas) — se filtra en el navegador sobre
-   * los nombres ya resueltos de cliente/servicio y las notas. Misma
-   * decisión documentada en Clientes y Servicios (docs/entrega-3a.md).
-   */
   const reservacionesFiltradas = React.useMemo(() => {
     const texto = busquedaDebounced.trim().toLowerCase();
     if (!texto) return reservaciones ?? [];
     return (reservaciones ?? []).filter((r) =>
-      [nombreCliente(r.cliente_id), nombreServicio(r.servicio_id), r.notas]
+      [String(r.id), nombreCliente(r.cliente_id), nombreServicio(r.servicio_id), r.notas]
         .filter(Boolean)
         .some((campo) => campo!.toLowerCase().includes(texto))
     );
   }, [reservaciones, busquedaDebounced, nombreCliente, nombreServicio]);
 
-  // Fila actualmente en proceso (si alguna) — se usa para deshabilitar
-  // sus botones y mostrar "Procesando..." sin bloquear el resto de la
-  // tabla. `cambiarEstado.isPending` además deshabilita TODAS las
-  // acciones de cambio de estado mientras haya una en curso, para
-  // evitar doble clic / solicitudes duplicadas por cualquier fila.
-  const idEnProceso = cambiarEstado.isPending ? cambiarEstado.variables?.id ?? null : null;
+  const mutacionEnCurso = cambiarEstado.isPending || checkIn.isPending || checkOut.isPending;
 
-  const solicitarTransicion = (reservacion: Reservacion, nuevoEstado: EstadoReservacion, label: string) => {
-    if (cambiarEstado.isPending) return; // ya hay una transición en curso — ignora el clic
-    if (nuevoEstado === "cancelada") {
-      // Cancelar/Rechazar es irreversible — siempre pide confirmación.
-      setTransicionPendiente({ reservacion, nuevoEstado, label });
-      return;
-    }
-    ejecutarTransicion(reservacion, nuevoEstado);
-  };
-
-  const ejecutarTransicion = (reservacion: Reservacion, nuevoEstado: EstadoReservacion) => {
-    if (cambiarEstado.isPending) return;
+  const confirmarReservacion = (r: Reservacion) => {
     cambiarEstado.mutate(
-      { id: reservacion.id, nuevoEstado },
+      { id: r.id, nuevoEstado: "confirmada" },
       {
-        onSuccess: () => {
-          toast({ title: `Reservación actualizada a "${nuevoEstado}"`, variant: "success" });
-          setTransicionPendiente(null);
-        },
-        onError: (error) => {
-          mostrarError(error, "No se pudo cambiar el estado");
-          setTransicionPendiente(null);
-        },
+        onSuccess: () => toast({ title: r.origen === "portal" ? "Solicitud aceptada" : "Reservación confirmada", variant: "success" }),
+        onError: (e) => mostrarError(e, "No se pudo confirmar"),
       }
     );
   };
 
+  const registrarCheckIn = (r: Reservacion) => {
+    checkIn.mutate(r.id, {
+      onSuccess: () => toast({ title: "Check-in registrado", descripcion: `La visita #${r.id} está en curso.`, variant: "success" }),
+      onError: (e) => mostrarError(e, "No se pudo registrar el check-in"),
+    });
+  };
+
+  const ejecutarConfirmacion = () => {
+    if (!confirmacion) return;
+    const r = confirmacion.reservacion;
+    if (confirmacion.tipo === "cancelar") {
+      cambiarEstado.mutate(
+        { id: r.id, nuevoEstado: "cancelada" },
+        {
+          onSuccess: () => {
+            toast({ title: r.origen === "portal" ? "Solicitud rechazada" : "Reservación cancelada", variant: "success" });
+            setConfirmacion(null);
+          },
+          onError: (e) => {
+            mostrarError(e, "No se pudo cancelar");
+            setConfirmacion(null);
+          },
+        }
+      );
+      return;
+    }
+
+    checkOut.mutate(r.id, {
+      onSuccess: () => {
+        toast({ title: "Check-out registrado", descripcion: "La visita quedó completada.", variant: "success" });
+        setConfirmacion(null);
+      },
+      onError: (e) => {
+        mostrarError(e, "No se pudo registrar el check-out");
+        setConfirmacion(null);
+      },
+    });
+  };
+
   const renderAccionesFila = (r: Reservacion) => {
-    const procesandoEstaFila = idEnProceso === r.id;
-    const esEditable = r.estado !== "completada" && r.estado !== "cancelada";
+    const editable = r.estado === "pendiente" || r.estado === "confirmada";
     return (
       <div className="flex flex-wrap justify-end gap-1">
-        {esEditable && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setReservacionEditar(r)}
-            disabled={cambiarEstado.isPending}
-          >
-            <Pencil className="mr-1 h-4 w-4" />
-            Editar
+        {editable && (
+          <Button variant="ghost" size="sm" onClick={() => setReservacionEditar(r)} disabled={mutacionEnCurso}>
+            <Pencil className="mr-1 h-4 w-4" /> Editar
           </Button>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setPagoReservacionId(r.id)}
-          disabled={cambiarEstado.isPending}
-        >
-          <Wallet className="mr-1 h-4 w-4" />
-          Pagos
+
+        <Button variant="ghost" size="sm" onClick={() => setPagoReservacionId(r.id)} disabled={mutacionEnCurso}>
+          <Wallet className="mr-1 h-4 w-4" /> Pagos
         </Button>
-        {accionesDisponibles(r).map((accion) => (
-          <Button
-            key={accion.label}
-            variant="ghost"
-            size="sm"
-            onClick={() => solicitarTransicion(r, accion.nuevoEstado, accion.label)}
-            disabled={cambiarEstado.isPending}
-            className={accion.destructiva ? "text-destructive" : ""}
-          >
-            {procesandoEstaFila ? (
+
+        {r.estado === "pendiente" && (
+          <Button variant="ghost" size="sm" onClick={() => confirmarReservacion(r)} disabled={mutacionEnCurso}>
+            {cambiarEstado.isPending && cambiarEstado.variables?.id === r.id ? (
               <Loader2 className="mr-1 h-4 w-4 animate-spin" />
             ) : (
-              <accion.Icon className="mr-1 h-4 w-4" />
+              <CheckCircle2 className="mr-1 h-4 w-4" />
             )}
-            {procesandoEstaFila ? "Procesando..." : accion.label}
+            {r.origen === "portal" ? "Aceptar" : "Confirmar"}
           </Button>
-        ))}
+        )}
+
+        {r.estado === "confirmada" && (
+          <Button variant="ghost" size="sm" onClick={() => registrarCheckIn(r)} disabled={mutacionEnCurso}>
+            {checkIn.isPending && checkIn.variables === r.id ? (
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+            ) : (
+              <LogIn className="mr-1 h-4 w-4" />
+            )}
+            Check-in
+          </Button>
+        )}
+
+        {r.estado === "en_curso" && r.pago_completo && (
+          <Button variant="ghost" size="sm" onClick={() => setConfirmacion({ tipo: "checkout", reservacion: r })} disabled={mutacionEnCurso}>
+            <LogOut className="mr-1 h-4 w-4" /> Check-out
+          </Button>
+        )}
+
+        {r.estado === "en_curso" && !r.pago_completo && (
+          <Button variant="ghost" size="sm" className="text-warning" onClick={() => setPagoReservacionId(r.id)} disabled={mutacionEnCurso}>
+            <Wallet className="mr-1 h-4 w-4" /> Cobrar saldo
+          </Button>
+        )}
+
+        {(r.estado === "pendiente" || r.estado === "confirmada") && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive"
+            onClick={() => setConfirmacion({ tipo: "cancelar", reservacion: r })}
+            disabled={mutacionEnCurso}
+          >
+            <XCircle className="mr-1 h-4 w-4" /> {r.origen === "portal" && r.estado === "pendiente" ? "Rechazar" : "Cancelar"}
+          </Button>
+        )}
       </div>
     );
   };
@@ -300,7 +269,7 @@ export function ReservacionesListPage() {
     { header: "Fechas", cell: (r) => <span className="whitespace-nowrap">{formatearRangoFechas(r)}</span> },
     { header: "Personas", cell: (r) => r.num_personas },
     {
-      header: "Total",
+      header: "Saldo / Total",
       cell: (r) => (
         <span className="font-mono">
           {formatearMoneda(r.saldo_pendiente)}
@@ -316,15 +285,14 @@ export function ReservacionesListPage() {
     <div className="space-y-5">
       <PageHeader
         titulo="Reservaciones"
-        descripcion="Gestiona las reservaciones del parque."
+        descripcion="Reservación, cobro, llegada y salida en un solo flujo."
         icon={CalendarCheck}
         acento="secondary"
         fotoUrl="https://ejixhole-reservas.vercel.app/gallery/hero-principal.jpg"
         fotoAlt="Cascada de EjiXhole"
         acciones={
           <Button onClick={() => setModalAbierto(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Nueva reservación
+            <Plus className="mr-2 h-4 w-4" /> Nueva reservación
           </Button>
         }
       />
@@ -333,7 +301,7 @@ export function ReservacionesListPage() {
         <div className="relative w-full max-w-xs">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Buscar por cliente, servicio o notas..."
+            placeholder="Buscar por folio, cliente, servicio o notas..."
             className="pl-9"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
@@ -343,15 +311,11 @@ export function ReservacionesListPage() {
         <div className="space-y-1">
           <label className="text-xs font-medium text-muted-foreground">Estado</label>
           <Select value={filtroEstado} onValueChange={setFiltroEstado}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value={FILTRO_TODOS}>Todos</SelectItem>
               {ESTADOS_RESERVACION.map((estado) => (
-                <SelectItem key={estado} value={estado}>
-                  {estado}
-                </SelectItem>
+                <SelectItem key={estado} value={estado}>{ESTADO_LABELS[estado]}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -360,16 +324,10 @@ export function ReservacionesListPage() {
         <div className="space-y-1">
           <label className="text-xs font-medium text-muted-foreground">Servicio</label>
           <Select value={filtroServicio} onValueChange={setFiltroServicio}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value={FILTRO_TODOS}>Todos</SelectItem>
-              {servicios?.map((s) => (
-                <SelectItem key={s.id} value={String(s.id)}>
-                  {s.nombre}
-                </SelectItem>
-              ))}
+              {servicios?.map((s) => <SelectItem key={s.id} value={String(s.id)}>{s.nombre}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -384,36 +342,17 @@ export function ReservacionesListPage() {
         </div>
       </FilterBar>
 
-      {isLoading && <TableSkeleton columnas={6} />}
-
-      {isError && !isLoading && (
-        <ErrorState error={error} onRetry={() => refetch()} retrying={isFetching} />
-      )}
-
+      {isLoading && <TableSkeleton columnas={8} />}
+      {isError && !isLoading && <ErrorState error={error} onRetry={() => refetch()} retrying={isFetching} />}
       {!isLoading && !isError && reservacionesFiltradas.length === 0 && (
         <EmptyState
           titulo={busqueda ? "Sin resultados" : "No hay reservaciones con estos filtros"}
-          descripcion={
-            busqueda
-              ? "Ninguna reservación coincide con tu búsqueda."
-              : "Ajusta los filtros o crea la primera reservación."
-          }
-          accion={
-            <Button onClick={() => setModalAbierto(true)} size="sm">
-              <Plus className="mr-2 h-4 w-4" />
-              Nueva reservación
-            </Button>
-          }
+          descripcion={busqueda ? "Ninguna reservación coincide con tu búsqueda." : "Ajusta los filtros o crea una reservación."}
+          accion={<Button onClick={() => setModalAbierto(true)} size="sm"><Plus className="mr-2 h-4 w-4" /> Nueva reservación</Button>}
         />
       )}
-
       {!isLoading && !isError && reservacionesFiltradas.length > 0 && (
-        <DataTable
-          columns={columnas}
-          data={reservacionesFiltradas}
-          getRowId={(r) => r.id}
-          renderAcciones={renderAccionesFila}
-        />
+        <DataTable columns={columnas} data={reservacionesFiltradas} getRowId={(r) => r.id} renderAcciones={renderAccionesFila} />
       )}
 
       <ReservacionFormModal
@@ -429,7 +368,7 @@ export function ReservacionesListPage() {
 
       {pagoReservacionId !== null && (
         <PagoModal
-          open={pagoReservacionId !== null}
+          open
           onOpenChange={(open) => !open && setPagoReservacionId(null)}
           reservacionId={pagoReservacionId}
           reservacionContexto={(reservaciones ?? []).find((r) => r.id === pagoReservacionId)}
@@ -437,23 +376,20 @@ export function ReservacionesListPage() {
       )}
 
       <ConfirmDialog
-        open={transicionPendiente !== null}
-        onOpenChange={(open) => !open && setTransicionPendiente(null)}
-        titulo={transicionPendiente?.reservacion.origen === "portal" ? "¿Rechazar esta solicitud?" : "¿Cancelar esta reservación?"}
+        open={confirmacion !== null}
+        onOpenChange={(open) => !open && setConfirmacion(null)}
+        titulo={confirmacion?.tipo === "checkout" ? "¿Registrar check-out?" : confirmacion?.reservacion.origen === "portal" ? "¿Rechazar esta solicitud?" : "¿Cancelar esta reservación?"}
         descripcion={
-          transicionPendiente
-            ? transicionPendiente.reservacion.origen === "portal"
-              ? `La solicitud del portal público de ${nombreCliente(transicionPendiente.reservacion.cliente_id)} pasará a estado "cancelada" y no se le asignará el servicio. Esta acción no se puede deshacer.`
-              : `La reservación de ${nombreCliente(transicionPendiente.reservacion.cliente_id)} pasará a estado "cancelada". Esta acción no se puede deshacer.`
-            : ""
+          confirmacion?.tipo === "checkout"
+            ? `La visita #${confirmacion.reservacion.id} quedará completada. El sistema ya verificó que no existe saldo pendiente.`
+            : confirmacion
+              ? `La reservación de ${nombreCliente(confirmacion.reservacion.cliente_id)} quedará cancelada. Esta acción no se puede deshacer.`
+              : ""
         }
-        textoConfirmar={transicionPendiente?.reservacion.origen === "portal" ? "Rechazar solicitud" : "Cancelar reservación"}
-        variante="destructive"
-        cargando={cambiarEstado.isPending}
-        onConfirmar={() =>
-          transicionPendiente &&
-          ejecutarTransicion(transicionPendiente.reservacion, transicionPendiente.nuevoEstado)
-        }
+        textoConfirmar={confirmacion?.tipo === "checkout" ? "Completar visita" : confirmacion?.reservacion.origen === "portal" ? "Rechazar solicitud" : "Cancelar reservación"}
+        variante={confirmacion?.tipo === "checkout" ? "default" : "destructive"}
+        cargando={mutacionEnCurso}
+        onConfirmar={ejecutarConfirmacion}
       />
     </div>
   );
