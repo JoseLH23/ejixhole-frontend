@@ -1,55 +1,45 @@
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.PROD ? "/api" : import.meta.env.VITE_API_BASE_URL;
+const CSRF_COOKIE_NAME = "ejixhole_csrf";
+const METODOS_SEGUROS = new Set(["get", "head", "options"]);
+
+function leerCookie(nombre: string): string | null {
+  if (typeof document === "undefined") return null;
+  const prefijo = `${encodeURIComponent(nombre)}=`;
+  const entrada = document.cookie
+    .split(";")
+    .map((valor) => valor.trim())
+    .find((valor) => valor.startsWith(prefijo));
+  return entrada ? decodeURIComponent(entrada.slice(prefijo.length)) : null;
+}
+
 /**
- * Instancia central de Axios. TODAS las llamadas a la API pasan por
- * aquí — ningún archivo de features/ crea su propio cliente HTTP.
+ * Cliente central del panel.
  *
- * Responsabilidades:
- * 1. Adjuntar el header Authorization automáticamente (ningún hook o
- *    componente necesita saber que existe un token).
- * 2. Si el backend responde 401 (token ausente/inválido/expirado),
- *    limpiar la sesión y forzar el regreso a /login — cubre tanto
- *    "nunca hubo sesión" como "la sesión expiró a la mitad del uso".
+ * La sesión viaja exclusivamente mediante cookie HttpOnly. JavaScript no
+ * recibe, decodifica ni persiste el JWT. En producción `/api` se reescribe
+ * desde Vercel hacia Render para que la cookie permanezca first-party.
  */
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
-  // ME-06 (auditoría de seguridad 13/jul/2026): sin timeout, una API
-  // colgada dejaba la pantalla esperando indefinidamente — el usuario
-  // podía reintentar y generar operaciones duplicadas.
   timeout: 15_000,
+  withCredentials: true,
 });
 
-const TOKEN_STORAGE_KEY = "ejixhole_token";
-
-export function getStoredToken(): string | null {
-  return localStorage.getItem(TOKEN_STORAGE_KEY);
-}
-
-export function setStoredToken(token: string): void {
-  localStorage.setItem(TOKEN_STORAGE_KEY, token);
-}
-
-export function clearStoredToken(): void {
-  localStorage.removeItem(TOKEN_STORAGE_KEY);
-}
-
 apiClient.interceptors.request.use((config) => {
-  const token = getStoredToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const metodo = config.method?.toLowerCase() ?? "get";
+  if (!METODOS_SEGUROS.has(metodo)) {
+    const csrf = leerCookie(CSRF_COOKIE_NAME);
+    if (csrf) config.headers["X-CSRF-Token"] = csrf;
   }
   return config;
 });
 
-/**
- * Callback que AuthContext registra al montar la app, para poder
- * reaccionar a un 401 sin que este archivo (api/client.ts) necesite
- * importar React ni el Context — mantiene la capa de API
- * independiente de la capa de UI.
- */
+/** Callback registrado por AuthContext para reaccionar a una sesión expirada. */
 let onUnauthorized: (() => void) | null = null;
 
 export function registerUnauthorizedHandler(handler: () => void): void {
@@ -59,13 +49,9 @@ export function registerUnauthorizedHandler(handler: () => void): void {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // El endpoint de login se excluye a propósito: un 401 ahí significa
-    // "contraseña incorrecta" (ya lo maneja LoginPage con su propio
-    // mensaje), no "tu sesión expiró" — mostrar ambos sería confuso.
     const esLogin = error.config?.url?.includes("/auth/login");
 
     if (error.response?.status === 401 && !esLogin) {
-      clearStoredToken();
       onUnauthorized?.();
     }
     return Promise.reject(error);
