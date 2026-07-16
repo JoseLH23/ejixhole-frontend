@@ -22,6 +22,20 @@ test("el panel conserva el flujo oficial de una visita", async () => {
   assert.match(pagina, /Cobrar saldo/);
 });
 
+test("reservaciones muestra prioridades operativas y recuperación de filtros", async () => {
+  const pagina = await leer("src/features/reservaciones/ReservacionesListPage.tsx");
+
+  assert.match(pagina, /Por revisar/);
+  assert.match(pagina, /Llegadas pendientes/);
+  assert.match(pagina, /En el parque/);
+  assert.match(pagina, /Saldo por cobrar/);
+  assert.match(pagina, /Siguiente paso/);
+  assert.match(pagina, /Cobrar saldo antes de salida/);
+  assert.match(pagina, /Limpiar filtros/);
+  assert.match(pagina, /rangoFechasInvalido/);
+  assert.match(pagina, /La fecha “Hasta” no puede ser anterior a “Desde”/);
+});
+
 test("los contratos HTTP críticos apuntan a los endpoints correctos", async () => {
   const [auth, reservaciones, pagos, caja] = await Promise.all([
     leer("src/api/auth.ts"),
