@@ -27,25 +27,16 @@ export function usePagosDeReservacion(reservacionId: number | null) {
 
 export function useRegistrarPago() {
   const queryClient = useQueryClient();
-  // AL-04: la key permanece estable hasta que el backend confirme éxito.
-  // Ante timeout, pérdida de red o error 5xx no sabemos si el pago quedó
-  // registrado; reutilizar la misma key permite recuperar el resultado
-  // original y evita un cobro duplicado. El backend libera la key cuando
-  // la operación falla realmente.
   const idempotencyKeyRef = useRef(generarIdempotencyKey());
 
   return useMutation({
     mutationFn: (data: PagoCreateInput) => pagosApi.crear(data, idempotencyKeyRef.current),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PAGOS_QUERY_KEY });
-      // Un pago cambia monto_pagado/saldo_pendiente/estado de la
-      // reservación (lo calcula el backend) — hay que invalidar
-      // también esa cache, no solo la de pagos.
       queryClient.invalidateQueries({ queryKey: RESERVACIONES_QUERY_KEY });
+      // Un pago o reembolso en efectivo crea también un movimiento automático.
+      queryClient.invalidateQueries({ queryKey: ["caja"] });
       idempotencyKeyRef.current = generarIdempotencyKey();
     },
-    // No renovar en onError: el resultado puede ser incierto. El próximo
-    // intento debe conservar la misma identidad para que el backend
-    // deduplique o devuelva la respuesta ya guardada.
   });
 }
