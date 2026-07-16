@@ -9,6 +9,8 @@ interface ToastData {
   id: string;
   title: string;
   description?: string;
+  /** Alias temporal para llamadas existentes escritas en español. */
+  descripcion?: string;
   variant: ToastVariant;
 }
 
@@ -26,11 +28,6 @@ const VARIANT_CONFIG: Record<ToastVariant, { Icon: typeof CheckCircle2; classNam
 
 const DURACION_MS = 5000;
 
-/**
- * Toasts globales. Cualquier componente llama `useToast().toast(...)`
- * — no hay que pasar props ni envolver nada localmente, el
- * `ToastProvider` ya vive en la raíz de la app (ver App.tsx).
- */
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = React.useState<ToastData[]>([]);
 
@@ -41,7 +38,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const toast = React.useCallback(
     (data: Omit<ToastData, "id">) => {
       const id = crypto.randomUUID();
-      setToasts((actuales) => [...actuales, { ...data, id }]);
+      const description = data.description ?? data.descripcion;
+      setToasts((actuales) => [...actuales, { ...data, description, id }]);
       window.setTimeout(() => dismiss(id), DURACION_MS);
     },
     [dismiss]
