@@ -26,3 +26,8 @@ export interface UsuarioCreateInput {
 export interface UsuarioRolUpdateInput {
   rol_id: number;
 }
+
+/** PATCH /usuarios/{id}/password — definir una contraseña nueva. */
+export interface UsuarioPasswordResetInput {
+  nueva_password: string;
+}
