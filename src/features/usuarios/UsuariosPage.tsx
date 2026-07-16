@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Plus, UserX, UserCog, Pencil } from "lucide-react";
+import { KeyRound, Pencil, Plus, UserCheck, UserCog, UserX } from "lucide-react";
 
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,14 @@ import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { useToast } from "@/components/ui/toast-provider";
 import { useErrorToast } from "@/hooks/useErrorToast";
 import { useAuth } from "@/context/AuthContext";
-import { useUsuarios, useDesactivarUsuario } from "./useUsuarios";
+import {
+  useDesactivarUsuario,
+  useReactivarUsuario,
+  useUsuarios,
+} from "./useUsuarios";
 import { UsuarioFormModal } from "./UsuarioFormModal";
 import { EditarRolModal } from "./EditarRolModal";
+import { RestablecerPasswordModal } from "./RestablecerPasswordModal";
 import type { Usuario } from "@/types/usuario";
 
 const ROL_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
@@ -34,25 +39,22 @@ function RolBadge({ rol }: { rol: string }) {
 }
 
 /**
- * Módulo Usuarios — listar (GET /usuarios), crear (POST /auth/usuarios,
- * ya existía), desactivar (DELETE /usuarios/{id}) y editar rol
- * (PATCH /usuarios/{id}/rol) — las tres protegidas contra dejar el
- * sistema sin ningún admin activo. Reutiliza get_current_user,
- * UsuarioOut y el patrón de ConfirmDialog ya usado en Clientes/Servicios.
- *
- * Todavía no incluye: editar nombre/email, ni reset de contraseña —
- * el backend no los expone aún.
+ * Administración completa de cuentas: listar, crear, editar rol,
+ * desactivar, reactivar y restablecer contraseña.
  */
 export function UsuariosPage() {
   const { data: usuarios, isLoading, isError, error, refetch, isFetching } = useUsuarios({ limit: 100 });
   const desactivar = useDesactivarUsuario();
+  const reactivar = useReactivarUsuario();
   const { usuario: usuarioActual } = useAuth();
   const { toast } = useToast();
   const mostrarError = useErrorToast();
 
   const [modalAbierto, setModalAbierto] = React.useState(false);
   const [usuarioDesactivar, setUsuarioDesactivar] = React.useState<Usuario | null>(null);
+  const [usuarioReactivar, setUsuarioReactivar] = React.useState<Usuario | null>(null);
   const [usuarioEditarRol, setUsuarioEditarRol] = React.useState<Usuario | null>(null);
+  const [usuarioPassword, setUsuarioPassword] = React.useState<Usuario | null>(null);
 
   const confirmarDesactivar = () => {
     if (!usuarioDesactivar) return;
@@ -68,6 +70,24 @@ export function UsuariosPage() {
     });
   };
 
+  const confirmarReactivar = () => {
+    if (!usuarioReactivar) return;
+    reactivar.mutate(usuarioReactivar.id, {
+      onSuccess: () => {
+        toast({
+          title: "Usuario reactivado",
+          description: `${usuarioReactivar.nombre} ya puede iniciar sesión nuevamente.`,
+          variant: "success",
+        });
+        setUsuarioReactivar(null);
+      },
+      onError: (error) => {
+        mostrarError(error, "No se pudo reactivar");
+        setUsuarioReactivar(null);
+      },
+    });
+  };
+
   const columnas: DataTableColumn<Usuario>[] = [
     { header: "Nombre", cell: (u) => <span className="font-medium">{u.nombre}</span> },
     { header: "Email", cell: (u) => u.email },
@@ -79,7 +99,7 @@ export function UsuariosPage() {
     <div className="space-y-3">
       <PageHeader
         titulo="Usuarios"
-        descripcion="Cuentas del sistema y sus roles."
+        descripcion="Administra accesos, roles, contraseñas y cuentas desactivadas."
         icon={UserCog}
         acento="wood"
         acciones={
@@ -106,7 +126,7 @@ export function UsuariosPage() {
           data={usuarios}
           getRowId={(u) => u.id}
           renderAcciones={(u) => (
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center justify-end gap-1">
               <Button
                 variant="ghost"
                 size="sm"
@@ -121,16 +141,32 @@ export function UsuariosPage() {
                 <Pencil className="mr-1 h-4 w-4" />
                 Editar rol
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive"
-                disabled={!u.activo}
-                onClick={() => setUsuarioDesactivar(u)}
-              >
-                <UserX className="mr-1 h-4 w-4" />
-                Desactivar
+
+              <Button variant="ghost" size="sm" onClick={() => setUsuarioPassword(u)}>
+                <KeyRound className="mr-1 h-4 w-4" />
+                Contraseña
               </Button>
+
+              {u.activo ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive"
+                  onClick={() => setUsuarioDesactivar(u)}
+                >
+                  <UserX className="mr-1 h-4 w-4" />
+                  Desactivar
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setUsuarioReactivar(u)}
+                >
+                  <UserCheck className="mr-1 h-4 w-4" />
+                  Reactivar
+                </Button>
+              )}
             </div>
           )}
         />
@@ -143,19 +179,38 @@ export function UsuariosPage() {
         onOpenChange={(open) => !open && setUsuarioEditarRol(null)}
       />
 
+      <RestablecerPasswordModal
+        usuario={usuarioPassword}
+        onOpenChange={(open) => !open && setUsuarioPassword(null)}
+      />
+
       <ConfirmDialog
         open={usuarioDesactivar !== null}
         onOpenChange={(open) => !open && setUsuarioDesactivar(null)}
         titulo="¿Desactivar este usuario?"
         descripcion={
           usuarioDesactivar
-            ? `${usuarioDesactivar.nombre} ya no podrá iniciar sesión. Esto no se puede deshacer desde aquí.`
+            ? `${usuarioDesactivar.nombre} no podrá iniciar sesión hasta que un administrador reactive la cuenta.`
             : ""
         }
         textoConfirmar="Desactivar"
         variante="destructive"
         cargando={desactivar.isPending}
         onConfirmar={confirmarDesactivar}
+      />
+
+      <ConfirmDialog
+        open={usuarioReactivar !== null}
+        onOpenChange={(open) => !open && setUsuarioReactivar(null)}
+        titulo="¿Reactivar este usuario?"
+        descripcion={
+          usuarioReactivar
+            ? `${usuarioReactivar.nombre} recuperará el acceso con su contraseña actual.`
+            : ""
+        }
+        textoConfirmar="Reactivar"
+        cargando={reactivar.isPending}
+        onConfirmar={confirmarReactivar}
       />
     </div>
   );
