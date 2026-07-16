@@ -7,7 +7,11 @@ export const authApi = {
     return response.data;
   },
 
-  /** GET /auth/me — perfil real (nombre, email, rol, activo) del usuario autenticado. */
+  logout: async (): Promise<void> => {
+    await apiClient.post("/auth/logout");
+  },
+
+  /** GET /auth/me — perfil real del usuario autenticado. */
   me: async (): Promise<UsuarioMe> => {
     const response = await apiClient.get<UsuarioMe>("/auth/me");
     return response.data;
