@@ -20,6 +20,7 @@ import { ReservacionesPorEstadoChart } from "./ReservacionesPorEstadoChart";
 import { IngresosUltimos7DiasChart } from "./IngresosUltimos7DiasChart";
 import { MhExecutiveDashboardPanel } from "./MhExecutiveDashboardPanel";
 import { MhPredictionsPanel } from "./MhPredictionsPanel";
+import { MhPredictionAccuracyPanel } from "./MhPredictionAccuracyPanel";
 import { obtenerIconoTarjeta } from "./dashboardIcons";
 import { nombreVisible } from "@/lib/nombreUsuario";
 
@@ -77,6 +78,11 @@ export function DashboardPage() {
         id: "predicciones-mh-core", titulo: "Predicciones de MH-Core",
         descripcion: "Actividad, visitantes, ingresos y riesgos previstos para preparar la operación.", categoria: "Dirección",
         tamanosPermitidos: ["grande"], tamanoInicial: "grande", contenido: <MhPredictionsPanel />,
+      },
+      {
+        id: "precision-mh-core", titulo: "Precisión de MH-Core",
+        descripcion: "Compara cada predicción madura contra visitantes e ingresos reales.", categoria: "Dirección",
+        tamanosPermitidos: ["mediano", "grande"], tamanoInicial: "grande", contenido: <MhPredictionAccuracyPanel />,
       },
       {
         id: "agenda-operativa", titulo: "Agenda operativa",

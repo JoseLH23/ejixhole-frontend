@@ -18,3 +18,22 @@ export interface MhPredictions {
     message: string;
   }>;
 }
+
+export interface MhPredictionEvaluationItem {
+  business_date: string;
+  horizon: { start: string; end: string };
+  expected: { visitors: number; revenue: string };
+  actual: { visitors: number; revenue: string };
+  accuracy: { visitors_percent: number; revenue_percent: number; overall_percent: number };
+  original_confidence: string;
+}
+
+export interface MhPredictionEvaluation {
+  as_of: string;
+  source: string;
+  access: string;
+  evaluated_predictions: number;
+  overall_accuracy_percent: number | null;
+  evaluations: MhPredictionEvaluationItem[];
+  message: string | null;
+}
