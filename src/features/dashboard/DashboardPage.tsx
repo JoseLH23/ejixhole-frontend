@@ -19,6 +19,7 @@ import { ProximasReservacionesCards } from "./ProximasReservacionesCards";
 import { ReservacionesPorEstadoChart } from "./ReservacionesPorEstadoChart";
 import { IngresosUltimos7DiasChart } from "./IngresosUltimos7DiasChart";
 import { MhExecutiveDashboardPanel } from "./MhExecutiveDashboardPanel";
+import { MhPredictionsPanel } from "./MhPredictionsPanel";
 import { obtenerIconoTarjeta } from "./dashboardIcons";
 import { nombreVisible } from "@/lib/nombreUsuario";
 
@@ -71,6 +72,11 @@ export function DashboardPage() {
         id: "inteligencia-mh-core", titulo: "Inteligencia de MH-Core",
         descripcion: "KPIs, tendencias, alertas y recomendaciones construidas con eventos reales.", categoria: "Dirección",
         tamanosPermitidos: ["grande"], tamanoInicial: "grande", contenido: <MhExecutiveDashboardPanel />,
+      },
+      {
+        id: "predicciones-mh-core", titulo: "Predicciones de MH-Core",
+        descripcion: "Actividad, visitantes, ingresos y riesgos previstos para preparar la operación.", categoria: "Dirección",
+        tamanosPermitidos: ["grande"], tamanoInicial: "grande", contenido: <MhPredictionsPanel />,
       },
       {
         id: "agenda-operativa", titulo: "Agenda operativa",
