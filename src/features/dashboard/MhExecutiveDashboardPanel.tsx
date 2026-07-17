@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, Brain, CalendarDays, CircleDollarSign, RefreshCw, Users } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { dashboardApi } from "@/api/dashboard";
 import { Button } from "@/components/ui/button";
@@ -17,9 +17,7 @@ export function MhExecutiveDashboardPanel() {
     staleTime: 60_000,
   });
 
-  if (query.isLoading) {
-    return <div className="skeleton-shimmer h-72 animate-shimmer rounded-xl" />;
-  }
+  if (query.isLoading) return <div className="skeleton-shimmer h-72 animate-shimmer rounded-xl" />;
 
   if (query.isError || !query.data) {
     return (
@@ -69,13 +67,15 @@ export function MhExecutiveDashboardPanel() {
           <CardContent>
             <div className="h-52 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={timeline}>
+                <ComposedChart data={timeline}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} />
-                  <Tooltip formatter={(value) => money(String(value))} />
-                  <Area type="monotone" dataKey="ingreso" stroke={CHART_COLORS.primary} fill={CHART_COLORS.primary} fillOpacity={0.15} />
-                </AreaChart>
+                  <YAxis yAxisId="money" tick={{ fontSize: 10 }} />
+                  <YAxis yAxisId="count" orientation="right" allowDecimals={false} tick={{ fontSize: 10 }} />
+                  <Tooltip formatter={(value, name) => name === "Ingreso neto" ? money(String(value)) : value} />
+                  <Area yAxisId="money" name="Ingreso neto" type="monotone" dataKey="ingreso" stroke={CHART_COLORS.primary} fill={CHART_COLORS.primary} fillOpacity={0.15} />
+                  <Line yAxisId="count" name="Reservaciones" type="monotone" dataKey="reservations" stroke={CHART_COLORS.secondary} strokeWidth={2} dot={{ r: 3 }} />
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
