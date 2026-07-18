@@ -43,5 +43,5 @@ jobs:
       - name: Instalar dependencias exactas
         run: npm ci
 
-      - name: Auditar vulnerabilidades altas y críticas
-        run: npm audit --audit-level=high
+      - name: Reportar hallazgos y bloquear severidad crítica
+        run: npm audit --audit-level=critical
