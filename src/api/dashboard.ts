@@ -2,6 +2,7 @@ import { apiClient } from "./client";
 import type { DashboardResumen } from "@/types/dashboard";
 import type { MhExecutiveDashboard } from "@/types/mhDashboard";
 import type { MhPredictions, MhPredictionEvaluation } from "@/types/mhPredictions";
+import type { MhServiceProfitability } from "@/types/mhProfitability";
 
 export const dashboardApi = {
   getResumen: async (): Promise<DashboardResumen> => {
@@ -22,6 +23,10 @@ export const dashboardApi = {
   },
   getMhDecisions: async (limit = 50) => {
     const response = await apiClient.get("/dashboard/mh-core/decisions", { params: { limit } });
+    return response.data;
+  },
+  getMhProfitability: async (days = 30): Promise<MhServiceProfitability> => {
+    const response = await apiClient.get<MhServiceProfitability>("/dashboard/mh-core/profitability", { params: { days } });
     return response.data;
   },
   saveRecommendationDecision: async (businessDate: string, code: string, decision: "accepted" | "dismissed") => {
