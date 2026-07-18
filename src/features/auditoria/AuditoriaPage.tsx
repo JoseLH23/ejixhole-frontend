@@ -28,6 +28,7 @@ import {
 import { useAuditoria } from "./useAuditoria";
 
 const LIMITE = 50;
+const etiquetaCampo = (clave: string) => clave.split("_").join(" ");
 
 function aInicioDia(valor: string): string | undefined {
   return valor ? new Date(`${valor}T00:00:00`).toISOString() : undefined;
@@ -78,7 +79,7 @@ function DetalleEvento({ evento, open, onOpenChange }: { evento: AuditEvent | nu
                   </div>
                   {cambios.map(({ clave, antes, despues }) => (
                     <div key={clave} className="grid grid-cols-[minmax(120px,0.7fr)_1fr_1fr] gap-3 border-t border-border px-3 py-2 text-sm">
-                      <span className="font-medium">{clave.replaceAll("_", " ")}</span>
+                      <span className="font-medium">{etiquetaCampo(clave)}</span>
                       <pre className="whitespace-pre-wrap break-words font-sans text-muted-foreground">{textoSeguro(clave, antes)}</pre>
                       <pre className="whitespace-pre-wrap break-words font-sans">{textoSeguro(clave, despues)}</pre>
                     </div>
@@ -93,7 +94,7 @@ function DetalleEvento({ evento, open, onOpenChange }: { evento: AuditEvent | nu
                 <div className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-2">
                   {Object.entries(evento.contexto).map(([clave, valor]) => (
                     <div key={clave} className="text-sm">
-                      <p className="text-xs text-muted-foreground">{clave.replaceAll("_", " ")}</p>
+                      <p className="text-xs text-muted-foreground">{etiquetaCampo(clave)}</p>
                       <p className="break-words">{textoSeguro(clave, valor)}</p>
                     </div>
                   ))}
@@ -185,6 +186,7 @@ export function AuditoriaPage() {
             columns={columnas}
             data={eventos}
             getRowId={(evento) => evento.id}
+            pageSize={LIMITE}
             renderAcciones={(evento) => (
               <Button variant="ghost" size="sm" onClick={() => setSeleccionado(evento)}>
                 <Eye className="mr-1 h-4 w-4" /> Ver detalle
