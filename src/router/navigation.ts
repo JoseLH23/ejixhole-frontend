@@ -10,6 +10,7 @@ import {
   Landmark,
   BarChart3,
   UserCog,
+  History,
   type LucideIcon,
 } from "lucide-react";
 
@@ -32,4 +33,5 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Caja", path: "/caja", icon: Landmark, roles: ["admin", "operador", "cajero"], grupo: "Operación" },
   { label: "Reportes", path: "/reportes", icon: BarChart3, roles: ["admin"], grupo: "Análisis" },
   { label: "Usuarios", path: "/usuarios", icon: UserCog, roles: ["admin"], grupo: "Administración" },
+  { label: "Auditoría", path: "/auditoria", icon: History, roles: ["admin"], grupo: "Administración" },
 ];
