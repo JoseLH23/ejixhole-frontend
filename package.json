@@ -18,7 +18,7 @@
     "axios": "^1.7.7",
     "react-hook-form": "^7.53.0",
     "@hookform/resolvers": "^3.9.0",
-    "zod": "^3.23.8",
+    "zod": "^4.4.3",
     "date-fns": "^3.6.0",
     "jwt-decode": "^4.0.0",
     "recharts": "^2.12.7",
