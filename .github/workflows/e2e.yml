@@ -1,0 +1,55 @@
+name: E2E - Panel
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: panel-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chromium:
+    name: Autenticación y permisos en Chromium
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v6
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Instalar proyecto
+        run: npm ci
+
+      - name: Instalar Playwright fijado para CI
+        run: npm install --no-save --no-package-lock @playwright/test@1.61.1
+
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Compilar panel
+        run: npm run build
+
+      - name: Ejecutar pruebas de navegador
+        run: npx playwright test
+
+      - name: Conservar evidencia de fallos
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: panel-playwright-results
+          path: test-results
+          if-no-files-found: ignore
+          retention-days: 14
