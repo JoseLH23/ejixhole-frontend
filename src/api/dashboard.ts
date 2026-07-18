@@ -20,4 +20,16 @@ export const dashboardApi = {
     const response = await apiClient.get<MhPredictionEvaluation>("/dashboard/mh-core/predictions/evaluation", { params: { limit } });
     return response.data;
   },
+  saveRecommendationDecision: async (businessDate: string, code: string, decision: "accepted" | "dismissed") => {
+    const response = await apiClient.post(`/dashboard/mh-core/predictions/recommendations/${code}/decision`, null, {
+      params: { business_date: businessDate, decision },
+    });
+    return response.data;
+  },
+  saveRecommendationOutcome: async (businessDate: string, code: string, outcome: "helped" | "neutral" | "not_helpful") => {
+    const response = await apiClient.post(`/dashboard/mh-core/predictions/recommendations/${code}/outcome`, null, {
+      params: { business_date: businessDate, outcome },
+    });
+    return response.data;
+  },
 };
