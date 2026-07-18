@@ -17,7 +17,7 @@ async function responderJson(route, status, body) {
 }
 
 test("una ruta protegida redirige al login cuando no existe sesión", async ({ page }) => {
-  await page.route("**/api/v1/auth/me", (route) =>
+  await page.route("**/api/auth/me", (route) =>
     responderJson(route, 401, { detail: "Sesión no válida" })
   );
 
@@ -28,7 +28,7 @@ test("una ruta protegida redirige al login cuando no existe sesión", async ({ p
 });
 
 test("el formulario valida los campos antes de llamar al backend", async ({ page }) => {
-  await page.route("**/api/v1/auth/me", (route) =>
+  await page.route("**/api/auth/me", (route) =>
     responderJson(route, 401, { detail: "Sesión no válida" })
   );
 
@@ -40,10 +40,10 @@ test("el formulario valida los campos antes de llamar al backend", async ({ page
 });
 
 test("muestra un mensaje claro cuando las credenciales son rechazadas", async ({ page }) => {
-  await page.route("**/api/v1/auth/me", (route) =>
+  await page.route("**/api/auth/me", (route) =>
     responderJson(route, 401, { detail: "Sesión no válida" })
   );
-  await page.route("**/api/v1/auth/login", (route) =>
+  await page.route("**/api/auth/login", (route) =>
     responderJson(route, 401, { detail: "Credenciales incorrectas" })
   );
 
@@ -56,7 +56,7 @@ test("muestra un mensaje claro cuando las credenciales son rechazadas", async ({
 });
 
 test("restaura una sesión HttpOnly consultando el perfil del servidor", async ({ page }) => {
-  await page.route("**/api/v1/auth/me", (route) => responderJson(route, 200, perfilAdmin));
+  await page.route("**/api/auth/me", (route) => responderJson(route, 200, perfilAdmin));
 
   await page.goto("/no-autorizado");
 
@@ -66,7 +66,7 @@ test("restaura una sesión HttpOnly consultando el perfil del servidor", async (
 });
 
 test("un rol sin permiso es enviado a la pantalla de acceso restringido", async ({ page }) => {
-  await page.route("**/api/v1/auth/me", (route) =>
+  await page.route("**/api/auth/me", (route) =>
     responderJson(route, 200, { ...perfilAdmin, rol: "cajero" })
   );
 
