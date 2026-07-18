@@ -21,6 +21,7 @@ import { IngresosUltimos7DiasChart } from "./IngresosUltimos7DiasChart";
 import { MhExecutiveDashboardPanel } from "./MhExecutiveDashboardPanel";
 import { MhPredictionsPanel } from "./MhPredictionsPanel";
 import { MhPredictionAccuracyPanel } from "./MhPredictionAccuracyPanel";
+import { MhDecisionCenterPanel } from "./MhDecisionCenterPanel";
 import { obtenerIconoTarjeta } from "./dashboardIcons";
 import { nombreVisible } from "@/lib/nombreUsuario";
 
@@ -78,6 +79,11 @@ export function DashboardPage() {
         id: "predicciones-mh-core", titulo: "Predicciones de MH-Core",
         descripcion: "Actividad, visitantes, ingresos y riesgos previstos para preparar la operación.", categoria: "Dirección",
         tamanosPermitidos: ["grande"], tamanoInicial: "grande", contenido: <MhPredictionsPanel />,
+      },
+      {
+        id: "centro-decisiones-mh-core", titulo: "Centro de decisiones",
+        descripcion: "Historial de recomendaciones, decisiones, resultados y pendientes de evaluar.", categoria: "Dirección",
+        tamanosPermitidos: ["mediano", "grande"], tamanoInicial: "grande", contenido: <MhDecisionCenterPanel />,
       },
       {
         id: "precision-mh-core", titulo: "Precisión de MH-Core",

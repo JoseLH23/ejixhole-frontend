@@ -20,6 +20,10 @@ export const dashboardApi = {
     const response = await apiClient.get<MhPredictionEvaluation>("/dashboard/mh-core/predictions/evaluation", { params: { limit } });
     return response.data;
   },
+  getMhDecisions: async (limit = 50) => {
+    const response = await apiClient.get("/dashboard/mh-core/decisions", { params: { limit } });
+    return response.data;
+  },
   saveRecommendationDecision: async (businessDate: string, code: string, decision: "accepted" | "dismissed") => {
     const response = await apiClient.post(`/dashboard/mh-core/predictions/recommendations/${code}/decision`, null, {
       params: { business_date: businessDate, decision },
