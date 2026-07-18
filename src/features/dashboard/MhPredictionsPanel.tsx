@@ -8,11 +8,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { cn } from "@/lib/utils";
 import type { MhPredictions } from "@/types/mhPredictions";
 
-type ExtendedPredictions = MhPredictions & {
+type ExtendedPredictions = Omit<MhPredictions, "recommendations"> & {
   confidence_details?: { evaluated_predictions: number; historical_accuracy_percent: number | null; trend: string; warning: string | null };
   alerts?: Array<{ code: string; severity: string; message: string }>;
   daily_summary?: { title: string; message: string; alerts_count: number };
   context_factors?: { model_version: string; weekday: string; historical_events: number; seasonality: string; weather: { message: string } };
+  recommendations: Array<{
+    code: string;
+    priority: "low" | "medium" | "high";
+    message: string;
+    decision?: { decision: string; decided_at: string; outcome?: string | null } | null;
+  }>;
 };
 
 const money = (value: string) => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(Number(value || 0));
