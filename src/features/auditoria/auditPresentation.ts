@@ -34,12 +34,16 @@ const ACCIONES: Record<string, string> = {
 const CAMPOS_OCULTOS = ["password", "token", "secret", "csrf", "api_key", "clave", "authorization"];
 const CAMPOS_PROTEGIDOS = ["email", "telefono", "nombre_completo", "notas", "referencia"];
 
+function palabras(valor: string, separador: string, reemplazo: string) {
+  return valor.split(separador).join(reemplazo);
+}
+
 export function etiquetaAccion(valor: string) {
-  return ACCIONES[valor] ?? valor.replaceAll(".", " · ").replaceAll("_", " ");
+  return ACCIONES[valor] ?? palabras(palabras(valor, ".", " · "), "_", " ");
 }
 
 export function etiquetaEntidad(valor: string) {
-  return ENTIDADES.find(([id]) => id === valor)?.[1] ?? valor.replaceAll("_", " ");
+  return ENTIDADES.find(([id]) => id === valor)?.[1] ?? palabras(valor, "_", " ");
 }
 
 export function fechaLegible(valor: string) {
@@ -54,14 +58,29 @@ export function campoOculto(clave: string) {
   return CAMPOS_OCULTOS.some((fragmento) => normalizada.includes(fragmento));
 }
 
-export function textoSeguro(clave: string, valor: unknown): string {
+function sanitizarValor(clave: string, valor: unknown, profundidad = 0): unknown {
   const normalizada = clave.toLowerCase();
   if (campoOculto(clave)) return "[REDACTADO]";
   if (CAMPOS_PROTEGIDOS.includes(normalizada) && valor != null && valor !== "") return "[PROTEGIDO]";
-  if (valor === null || valor === undefined || valor === "") return "—";
-  if (typeof valor === "boolean") return valor ? "Sí" : "No";
-  if (typeof valor === "object") return JSON.stringify(valor, null, 2);
-  return String(valor);
+  if (profundidad >= 8) return "[CONTENIDO PROFUNDO OMITIDO]";
+  if (Array.isArray(valor)) return valor.map((item) => sanitizarValor("item", item, profundidad + 1));
+  if (valor && typeof valor === "object") {
+    return Object.fromEntries(
+      Object.entries(valor as Record<string, unknown>).map(([hija, contenido]) => [
+        hija,
+        sanitizarValor(hija, contenido, profundidad + 1),
+      ])
+    );
+  }
+  return valor;
+}
+
+export function textoSeguro(clave: string, valor: unknown): string {
+  const seguro = sanitizarValor(clave, valor);
+  if (seguro === null || seguro === undefined || seguro === "") return "—";
+  if (typeof seguro === "boolean") return seguro ? "Sí" : "No";
+  if (typeof seguro === "object") return JSON.stringify(seguro, null, 2);
+  return String(seguro);
 }
 
 export function diferencias(antes: AuditPayload | null, despues: AuditPayload | null) {
