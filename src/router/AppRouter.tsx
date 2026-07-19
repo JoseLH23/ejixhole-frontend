@@ -28,6 +28,7 @@ const ClientesNuevosReportPage = React.lazy(() => import("@/features/reportes/Cl
 const ProximasReservacionesReportPage = React.lazy(() => import("@/features/reportes/ProximasReservacionesReportPage").then((m) => ({ default: m.ProximasReservacionesReportPage })));
 const UsuariosPage = React.lazy(() => import("@/features/usuarios/UsuariosPage").then((m) => ({ default: m.UsuariosPage })));
 const AuditoriaPage = React.lazy(() => import("@/features/auditoria/AuditoriaPage").then((m) => ({ default: m.AuditoriaPage })));
+const ObservabilidadPage = React.lazy(() => import("@/features/observabilidad/ObservabilidadPage").then((m) => ({ default: m.ObservabilidadPage })));
 
 function CargandoModulo() {
   return <div className="flex h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
@@ -64,6 +65,7 @@ export function AppRouter() {
                 <Route path="/reportes/proximas-reservaciones" element={<ProximasReservacionesReportPage />} />
                 <Route path="/usuarios" element={<UsuariosPage />} />
                 <Route path="/auditoria" element={<AuditoriaPage />} />
+                <Route path="/observabilidad" element={<ObservabilidadPage />} />
               </Route>
               <Route element={<RequireRole roles={["admin", "cajero"]} />}><Route path="/pagos" element={<PagosListPage />} /></Route>
               <Route element={<RequireRole roles={["admin", "operador", "cajero"]} />}><Route path="/caja" element={<CajaPage />} /></Route>
