@@ -1,0 +1,31 @@
+name: Smoke - Panel desplegado
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: URL HTTPS del panel sin barra final
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Comprobar sitio publicado
+        env:
+          BASE_URL: ${{ inputs.base_url }}
+        run: |
+          case "$BASE_URL" in https://*) ;; *) exit 1 ;; esac
+          curl --fail --silent --show-error --retry 3 --retry-all-errors "$BASE_URL/" > index.html
+          grep -qi '<div id="root"' index.html
+          grep -qi '<script' index.html
+      - uses: actions/upload-artifact@v7
+        with:
+          name: frontend-smoke-${{ github.run_id }}
+          path: index.html
+          retention-days: 30
