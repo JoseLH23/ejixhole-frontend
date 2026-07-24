@@ -25,6 +25,16 @@ test("la CSP bloquea objetos y framing sin impedir el proxy oficial", () => {
   assert.match(csp, /object-src 'none'/);
   assert.match(csp, /frame-ancestors 'none'/);
   assert.match(csp, /connect-src 'self' https:\/\/c-ejixhole-backend\.onrender\.com/);
+  assert.match(csp, /https:\/\/api\.open-meteo\.com/);
+  assert.match(csp, /img-src[^;]*https:\/\/ejixhole-reservas\.vercel\.app/);
   assert.match(csp, /https:\/\/fonts\.gstatic\.com/);
   assert.doesNotMatch(csp, /script-src[^;]*'unsafe-inline'/);
+});
+
+test("el panel consulta el portal mediante un proxy same-origin", () => {
+  const proxyPortal = configuracion.rewrites.find(
+    (regla) => regla.source === "/portal-health"
+  );
+
+  assert.equal(proxyPortal.destination, "https://ejixhole-reservas.vercel.app/");
 });
