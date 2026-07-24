@@ -14,12 +14,10 @@ export interface EstadoSistemaItem {
  * Revisa por HTTP real los 3 sistemas del ecosistema EjiXhole:
  *
  * 1. Backend API — GET /status (ya existía, público, sin auth).
- * 2. Portal público de reservaciones — fetch a la URL pública real
- *    (ejixhole-reservas.vercel.app) en modo "no-cors": el navegador no
- *    deja leer el contenido de una respuesta cross-origin así, pero SÍ
- *    distingue una respuesta de red exitosa de una caída real (DNS,
- *    timeout, 5xx de Vercel) — suficiente para un indicador honesto de
- *    "¿el sitio responde?", sin inventar un endpoint que no existe.
+ * 2. Portal público de reservaciones — GET /portal-health usa un proxy
+ *    same-origin de Vercel hacia ejixhole-reservas.vercel.app. Así el
+ *    navegador puede leer el status HTTP real sin CORS ni relajar
+ *    connect-src para conexiones arbitrarias.
  * 3. Frontend administrativo — si este código se está ejecutando, el
  *    frontend está, por definición, en línea. No es un dato inventado:
  *    es el hecho más verificable de los tres.
@@ -38,14 +36,10 @@ async function verificarBackend(): Promise<EstadoConexion> {
 
 async function verificarPortalPublico(): Promise<EstadoConexion> {
   try {
-    await fetch("https://ejixhole-reservas.vercel.app/", {
-      mode: "no-cors",
+    const respuesta = await fetch("/portal-health", {
       cache: "no-store",
     });
-    // Con no-cors, una respuesta "opaque" ya significa que el fetch no
-    // fue rechazado por la red — es la señal más honesta disponible
-    // sin poder leer el status code real cross-origin.
-    return "en_linea";
+    return respuesta.ok ? "en_linea" : "sin_conexion";
   } catch {
     return "sin_conexion";
   }
