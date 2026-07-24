@@ -30,3 +30,11 @@ test("la ruta y navegación están limitadas al administrador", async () => {
   assert.match(navigation, /path: "\/observabilidad"/);
   assert.match(navigation, /roles: \["admin"\]/);
 });
+
+test("el estado del portal usa el proxy verificable y no un fetch opaco", async () => {
+  const estado = await leer("src/hooks/useEstadoSistema.ts");
+
+  assert.match(estado, /fetch\("\/portal-health"/);
+  assert.match(estado, /respuesta\.ok \? "en_linea" : "sin_conexion"/);
+  assert.doesNotMatch(estado, /mode:\s*"no-cors"/);
+});
