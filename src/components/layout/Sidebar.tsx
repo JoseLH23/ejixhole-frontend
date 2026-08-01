@@ -25,7 +25,13 @@ interface SidebarProps {
   onAbrirPaleta: () => void;
 }
 
-const ORDEN_GRUPOS: NavItem["grupo"][] = ["Principal", "Operación", "Análisis", "Administración"];
+const ORDEN_GRUPOS: NavItem["grupo"][] = [
+  "Principal",
+  "Operación",
+  "Inteligencia",
+  "Análisis",
+  "Administración",
+];
 
 const ROL_LABELS: Record<string, string> = {
   admin: "Administrador",
