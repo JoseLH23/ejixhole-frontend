@@ -18,6 +18,7 @@ export type OfferFocus = "entrada" | "camping" | "hospedaje" | "experiencia_gene
 export interface MarketingStatus {
   configured: boolean;
   available: boolean;
+  warming_up: boolean;
   knowledge_version: string | null;
   documents: number;
   message: string;
