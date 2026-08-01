@@ -12,6 +12,7 @@ import {
   BarChart3,
   UserCog,
   History,
+  Megaphone,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,7 +21,7 @@ export interface NavItem {
   path: string;
   icon: LucideIcon;
   roles: Rol[];
-  grupo: "Principal" | "Operación" | "Análisis" | "Administración";
+  grupo: "Principal" | "Operación" | "Inteligencia" | "Análisis" | "Administración";
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -32,6 +33,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Tarifas", path: "/tarifas", icon: BadgePercent, roles: ["admin"], grupo: "Operación" },
   { label: "Pagos", path: "/pagos", icon: Wallet, roles: ["admin", "cajero"], grupo: "Operación" },
   { label: "Caja", path: "/caja", icon: Landmark, roles: ["admin", "operador", "cajero"], grupo: "Operación" },
+  { label: "Marketing", path: "/marketing", icon: Megaphone, roles: ["admin"], grupo: "Inteligencia" },
   { label: "Reportes", path: "/reportes", icon: BarChart3, roles: ["admin"], grupo: "Análisis" },
   { label: "Observabilidad", path: "/observabilidad", icon: Activity, roles: ["admin"], grupo: "Análisis" },
   { label: "Usuarios", path: "/usuarios", icon: UserCog, roles: ["admin"], grupo: "Administración" },
