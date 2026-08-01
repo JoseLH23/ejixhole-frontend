@@ -119,9 +119,25 @@ function StatusCard({
   );
 }
 
+function EmptyPreview() {
+  return (
+    <Card className="min-h-[420px]">
+      <CardContent className="flex min-h-[420px] flex-col items-center justify-center px-6 text-center">
+        <div className="rounded-2xl bg-primary/10 p-4 text-primary">
+          <Sparkles className="h-8 w-8" />
+        </div>
+        <h2 className="mt-4 text-lg font-semibold">Aquí aparecerá tu campaña</h2>
+        <p className="mt-2 max-w-md text-sm text-muted-foreground">
+          MindHigh preparará un borrador diferente para cada canal. Nada se publicará sin tu aprobación.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
 function CampaignPreview({ campaign }: { campaign: MarketingCampaign | null }) {
   const { toast } = useToast();
-  const [copied, setCopied] = React.useState<string | null>(null);
+  const [copied, setCopied] = React.useState<MarketingChannel | null>(null);
 
   const copyContent = async (channel: MarketingChannel, text: string) => {
     try {
@@ -130,37 +146,31 @@ function CampaignPreview({ campaign }: { campaign: MarketingCampaign | null }) {
       window.setTimeout(() => setCopied(null), 1600);
       toast({ title: "Texto copiado", variant: "success" });
     } catch {
-      toast({ title: "No se pudo copiar", description: "Selecciona el texto manualmente.", variant: "error" });
+      toast({
+        title: "No se pudo copiar",
+        description: "Selecciona el texto manualmente.",
+        variant: "error",
+      });
     }
   };
 
-  if (!campaign) {
-    return (
-      <Card className="min-h-[420px]">
-        <CardContent className="flex min-h-[420px] flex-col items-center justify-center px-6 text-center">
-          <div className="rounded-2xl bg-primary/10 p-4 text-primary">
-            <Sparkles className="h-8 w-8" />
-          </div>
-          <h2 className="mt-4 text-lg font-semibold">Aquí aparecerá tu campaña</h2>
-          <p className="mt-2 max-w-md text-sm text-muted-foreground">
-            MindHigh preparará un borrador diferente para cada canal. Nada se publicará sin tu aprobación.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  if (!campaign) return <EmptyPreview />;
 
   return (
     <div className="space-y-3">
       <Card className="border-success/30 bg-success/5">
-        <CardContent className="grid gap-3 p-4 sm:grid-cols-3">
+        <CardContent className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Campaña</p>
             <p className="mt-1 font-semibold">{campaign.name}</p>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Conocimiento</p>
-            <p className="mt-1 font-semibold">{campaign.knowledge_version}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Público</p>
+            <p className="mt-1 text-sm font-medium">{campaign.audience}</p>
+          </div>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Temporada</p>
+            <p className="mt-1 text-sm font-medium">{campaign.season}</p>
           </div>
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Estado</p>
@@ -172,16 +182,14 @@ function CampaignPreview({ campaign }: { campaign: MarketingCampaign | null }) {
       </Card>
 
       {campaign.contents.map((content) => {
-        const text = [
+        const blocks = [
           content.headline,
-          "",
           content.body,
-          "",
           content.call_to_action,
-          content.hashtags.join(" "),
-        ]
-          .filter(Boolean)
-          .join("\n");
+          content.hashtags.length > 0 ? content.hashtags.join(" ") : null,
+        ].filter((block): block is string => Boolean(block));
+        const text = blocks.join("\n\n");
+
         return (
           <Card key={content.channel}>
             <CardHeader className="flex-row items-start justify-between gap-3 space-y-0">
@@ -198,7 +206,7 @@ function CampaignPreview({ campaign }: { campaign: MarketingCampaign | null }) {
                 {copied === content.channel ? "Copiado" : "Copiar"}
               </Button>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent>
               <div className="rounded-xl border bg-muted/30 p-4">
                 <p className="text-base font-semibold">{content.headline}</p>
                 <p className="mt-3 whitespace-pre-line text-sm leading-6">{content.body}</p>
@@ -215,12 +223,23 @@ function CampaignPreview({ campaign }: { campaign: MarketingCampaign | null }) {
       <Card>
         <CardContent className="flex items-start gap-3 p-4">
           <BookOpenCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="font-semibold">Fuentes verificables</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Esta propuesta conserva {campaign.knowledge_citations.length} citas privadas de MH-Knowledge.
-              No incluye precios, horarios ni promociones inventadas.
+              Conocimiento {campaign.knowledge_version}. No incluye precios, horarios ni promociones inventadas.
             </p>
+            <details className="mt-3 rounded-lg border bg-muted/20 p-3">
+              <summary className="cursor-pointer text-sm font-medium">
+                Ver {campaign.knowledge_citations.length} citas utilizadas
+              </summary>
+              <ul className="mt-3 space-y-2">
+                {campaign.knowledge_citations.map((citation) => (
+                  <li key={citation} className="overflow-x-auto rounded-md bg-background px-3 py-2">
+                    <code className="text-xs text-muted-foreground">{citation}</code>
+                  </li>
+                ))}
+              </ul>
+            </details>
           </div>
         </CardContent>
       </Card>
@@ -252,6 +271,9 @@ export function MarketingPage() {
 
   const draftMutation = useMutation({
     mutationFn: marketingApi.createDraft,
+    onMutate: () => {
+      setCampaign(null);
+    },
     onSuccess: (result) => {
       setCampaign(result);
       toast({
@@ -261,9 +283,10 @@ export function MarketingPage() {
       });
     },
     onError: () => {
+      setCampaign(null);
       toast({
         title: "No se pudo generar la campaña",
-        description: "Comprueba la conexión de Marketing e intenta nuevamente.",
+        description: "La vista previa anterior fue retirada. Comprueba la conexión e intenta nuevamente.",
         variant: "error",
       });
     },
@@ -306,7 +329,9 @@ export function MarketingPage() {
             </p>
           </div>
           <div className="rounded-xl border bg-background/80 px-4 py-3 text-sm shadow-sm backdrop-blur">
-            <p className="flex items-center gap-2 font-semibold"><ShieldCheck className="h-4 w-4 text-success" /> Control humano obligatorio</p>
+            <p className="flex items-center gap-2 font-semibold">
+              <ShieldCheck className="h-4 w-4 text-success" /> Control humano obligatorio
+            </p>
             <p className="mt-1 text-xs text-muted-foreground">MindHigh propone. Tú revisas y decides.</p>
           </div>
         </div>
@@ -347,7 +372,9 @@ export function MarketingPage() {
                     className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-[13px] shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
                   >
                     {OBJECTIVES.map((objective) => (
-                      <option key={objective.value} value={objective.value}>{objective.label}</option>
+                      <option key={objective.value} value={objective.value}>
+                        {objective.label}
+                      </option>
                     ))}
                   </select>
                 </label>
@@ -362,7 +389,9 @@ export function MarketingPage() {
                     className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-[13px] shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
                   >
                     {FOCUSES.map((focus) => (
-                      <option key={focus.value} value={focus.value}>{focus.label}</option>
+                      <option key={focus.value} value={focus.value}>
+                        {focus.label}
+                      </option>
                     ))}
                   </select>
                 </label>
