@@ -15,6 +15,7 @@ const ServiciosListPage = React.lazy(() => import("@/features/servicios/Servicio
 const ReservacionesListPage = React.lazy(() => import("@/features/reservaciones/ReservacionesListPage").then((m) => ({ default: m.ReservacionesListPage })));
 const PagosListPage = React.lazy(() => import("@/features/pagos/PagosListPage").then((m) => ({ default: m.PagosListPage })));
 const CajaPage = React.lazy(() => import("@/features/caja/CajaPage").then((m) => ({ default: m.CajaPage })));
+const MarketingPage = React.lazy(() => import("@/features/marketing/MarketingPage").then((m) => ({ default: m.MarketingPage })));
 const ReportesHubPage = React.lazy(() => import("@/features/reportes/ReportesHubPage").then((m) => ({ default: m.ReportesHubPage })));
 const IngresosReportPage = React.lazy(() => import("@/features/reportes/IngresosReportPage").then((m) => ({ default: m.IngresosReportPage })));
 const CuentasPorCobrarReportPage = React.lazy(() => import("@/features/reportes/CuentasPorCobrarReportPage").then((m) => ({ default: m.CuentasPorCobrarReportPage })));
@@ -52,6 +53,7 @@ export function AppRouter() {
                 <Route path="/calendario" element={<CalendarioOperativoPage />} />
                 <Route path="/tarifas" element={<TarifasEspecialesPage />} />
                 <Route path="/servicios" element={<ServiciosListPage />} />
+                <Route path="/marketing" element={<MarketingPage />} />
                 <Route path="/reportes" element={<ReportesHubPage />} />
                 <Route path="/reportes/ingresos" element={<IngresosReportPage />} />
                 <Route path="/reportes/cuentas-por-cobrar" element={<CuentasPorCobrarReportPage />} />
